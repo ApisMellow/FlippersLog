@@ -104,7 +104,18 @@ Rules:
         throw new Error('No text content in response');
       }
 
-      const parsed = JSON.parse(textContent.text);
+      // Extract JSON from response (handle markdown code blocks and backticks)
+      let jsonText = textContent.text.trim();
+
+      // Remove markdown code blocks: ```json ... ``` or ``` ... ```
+      jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+
+      // Remove single backticks: `...`
+      jsonText = jsonText.replace(/^`+|`+$/g, '');
+
+      jsonText = jsonText.trim();
+
+      const parsed = JSON.parse(jsonText);
 
       // Validate score exists
       if (typeof parsed.score !== 'number') {

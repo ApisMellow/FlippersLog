@@ -23,6 +23,12 @@ jest.mock('expo-file-system', () => ({
   EncodingType: { Base64: 'base64' }
 }));
 
+// Mock expo-image-manipulator
+jest.mock('expo-image-manipulator', () => ({
+  manipulateAsync: jest.fn().mockResolvedValue({ uri: 'converted.jpg' }),
+  SaveFormat: { JPEG: 'jpeg' }
+}));
+
 describe('AI Vision - Real API', () => {
   beforeEach(() => {
     process.env.ANTHROPIC_API_KEY = 'test-key';
