@@ -140,7 +140,12 @@ export default function CaptureScreen() {
           {analyzing && (
             <View style={styles.analyzingOverlay}>
               <ActivityIndicator size="large" color="white" />
-              <Text style={styles.analyzingText}>Analyzing photo...</Text>
+              <Text style={styles.analyzingText}>
+                {photo ? 'Analyzing photo with AI...' : 'Processing...'}
+              </Text>
+              <Text style={styles.analyzingSubtext}>
+                This may take a few seconds
+              </Text>
             </View>
           )}
           <View style={styles.previewControls}>
@@ -258,6 +263,11 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     marginTop: 16,
+  },
+  analyzingSubtext: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 14,
+    marginTop: 8,
   },
   previewControls: {
     flexDirection: 'row',
