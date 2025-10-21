@@ -14,13 +14,13 @@ export interface VisionResult {
 }
 
 // Helper function to detect media type from URI
-function getMediaType(uri: string): string {
+function getMediaType(uri: string): 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif' {
   const ext = uri.split('.').pop()?.toLowerCase();
   switch(ext) {
     case 'png': return 'image/png';
     case 'jpg':
     case 'jpeg': return 'image/jpeg';
-    case 'heic': return 'image/heic';
+    case 'heic': return 'image/jpeg'; // Anthropic SDK doesn't support heic in types but accepts it, fallback to jpeg
     case 'webp': return 'image/webp';
     default: return 'image/jpeg'; // fallback
   }

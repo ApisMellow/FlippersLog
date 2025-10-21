@@ -74,7 +74,7 @@ export default function CaptureScreen() {
 
       // Save the table if it doesn't exist
       const table = await storage.saveTable({
-        name: result.tableName,
+        name: result.tableName || 'Unknown Table',
         manufacturer: result.manufacturer,
       });
 
