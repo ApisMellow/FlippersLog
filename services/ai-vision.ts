@@ -13,6 +13,19 @@ export interface VisionResult {
   error?: string; // Error message if API call fails
 }
 
+// Helper function to detect media type from URI
+function getMediaType(uri: string): string {
+  const ext = uri.split('.').pop()?.toLowerCase();
+  switch(ext) {
+    case 'png': return 'image/png';
+    case 'jpg':
+    case 'jpeg': return 'image/jpeg';
+    case 'heic': return 'image/heic';
+    case 'webp': return 'image/webp';
+    default: return 'image/jpeg'; // fallback
+  }
+}
+
 export const aiVision = {
   // Analyze a photo and extract pinball table info and score
   async analyzePhoto(photoUri: string): Promise<VisionResult> {
@@ -43,7 +56,7 @@ export const aiVision = {
               type: 'image',
               source: {
                 type: 'base64',
-                media_type: 'image/jpeg',
+                media_type: getMediaType(photoUri),
                 data: base64,
               },
             },
