@@ -1,0 +1,18 @@
+export interface Score {
+  id: string;
+  tableId: string;
+  score: number;
+  date: string; // ISO date string
+  photoUri?: string;
+}
+
+export interface Table {
+  id: string;
+  name: string;
+  manufacturer?: string;
+  year?: number;
+}
+
+export interface TableWithScores extends Table {
+  topScores: Score[]; // Top 3 scores for this table
+}
