@@ -2,11 +2,12 @@
 // This will use Claude API or OpenAI Vision API
 
 export interface VisionResult {
-  tableName: string;
+  tableName?: string;
   score: number;
   confidence: number; // 0-1
   manufacturer?: string;
   isMockData?: boolean; // Indicates if this is mock/test data
+  error?: string; // Error message if API call fails
 }
 
 export const aiVision = {
