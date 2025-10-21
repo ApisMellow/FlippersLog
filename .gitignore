@@ -18,6 +18,10 @@ web-build/
 
 # Local env files
 .env*.local
+.env
 
 # typescript
 *.tsbuildinfo
+
+# Git worktrees
+.worktrees/
