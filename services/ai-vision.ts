@@ -16,13 +16,19 @@ export interface VisionResult {
 // Helper function to detect media type from URI
 function getMediaType(uri: string): 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif' {
   const ext = uri.split('.').pop()?.toLowerCase();
+  console.log('[AI Vision] File extension detected:', ext);
+
   switch(ext) {
     case 'png': return 'image/png';
     case 'jpg':
     case 'jpeg': return 'image/jpeg';
-    case 'heic': return 'image/jpeg'; // Anthropic SDK doesn't support heic in types but accepts it, fallback to jpeg
+    case 'heic':
+      console.log('[AI Vision] HEIC detected - converting to jpeg media type');
+      return 'image/jpeg'; // Anthropic SDK doesn't support heic in types but accepts it, fallback to jpeg
     case 'webp': return 'image/webp';
-    default: return 'image/jpeg'; // fallback
+    default:
+      console.log('[AI Vision] Unknown extension - using jpeg as fallback');
+      return 'image/jpeg'; // fallback
   }
 }
 
@@ -37,13 +43,28 @@ export const aiVision = {
     }
 
     try {
+      // Debug: Log the photo URI
+      console.log('[AI Vision] Photo URI:', photoUri);
+
       // Read photo as base64
       const base64 = await FileSystem.readAsStringAsync(photoUri, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
+      // Debug: Check base64 encoding
+      console.log('[AI Vision] Base64 length:', base64.length);
+      console.log('[AI Vision] Base64 first 50 chars:', base64.substring(0, 50));
+      console.log('[AI Vision] Has data URI prefix:', base64.startsWith('data:'));
+
+      // Detect media type
+      const mediaType = getMediaType(photoUri);
+      console.log('[AI Vision] Detected media type:', mediaType);
+
       // Initialize Claude client
       const anthropic = new Anthropic({ apiKey });
+
+      // Debug: Log request details
+      console.log('[AI Vision] Sending request to Claude API...');
 
       // Call Claude Vision API
       const response = await anthropic.messages.create({
@@ -56,7 +77,7 @@ export const aiVision = {
               type: 'image',
               source: {
                 type: 'base64',
-                media_type: getMediaType(photoUri),
+                media_type: mediaType,
                 data: base64,
               },
             },
@@ -77,6 +98,9 @@ Rules:
         }]
       });
 
+      // Debug: Log successful response
+      console.log('[AI Vision] Received response from Claude API');
+
       // Parse response
       const textContent = response.content.find(c => c.type === 'text');
       if (!textContent || textContent.type !== 'text') {
@@ -90,6 +114,8 @@ Rules:
         throw new Error('No valid score in response');
       }
 
+      console.log('[AI Vision] Successfully extracted:', { score: parsed.score, tableName: parsed.tableName });
+
       return {
         score: parsed.score,
         tableName: parsed.tableName || undefined,
@@ -98,7 +124,24 @@ Rules:
       };
 
     } catch (error) {
-      console.error('AI Vision API Error:', error);
+      console.error('[AI Vision] Error occurred during image processing');
+      console.error('[AI Vision] Error type:', error instanceof Error ? error.constructor.name : typeof error);
+      console.error('[AI Vision] Error message:', error instanceof Error ? error.message : String(error));
+
+      // Log additional error details if available
+      if (error && typeof error === 'object') {
+        const errorObj = error as any;
+        if (errorObj.status) {
+          console.error('[AI Vision] HTTP Status:', errorObj.status);
+        }
+        if (errorObj.error) {
+          console.error('[AI Vision] Error details:', JSON.stringify(errorObj.error, null, 2));
+        }
+        if (errorObj.response) {
+          console.error('[AI Vision] Response data:', JSON.stringify(errorObj.response, null, 2));
+        }
+      }
+
       // Return mock data with error flag
       return {
         ...getMockResult(),
