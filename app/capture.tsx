@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Ale
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { aiVision } from '@/services/ai-vision';
 import { storage } from '@/services/storage';
 
@@ -38,6 +39,25 @@ export default function CaptureScreen() {
       if (photo) {
         setPhoto(photo.uri);
       }
+    }
+  };
+
+  const pickFromLibrary = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert('Permission Required', 'Please grant photo library access to select photos.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setPhoto(result.assets[0].uri);
     }
   };
 
@@ -103,13 +123,15 @@ export default function CaptureScreen() {
             </View>
           </CameraView>
           <View style={styles.controls}>
-            <TouchableOpacity style={styles.controlButton} onPress={toggleCameraFacing}>
-              <Ionicons name="camera-reverse" size={32} color="white" />
+            <TouchableOpacity style={styles.controlButton} onPress={pickFromLibrary}>
+              <Ionicons name="images" size={32} color="white" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
               <View style={styles.captureButtonInner} />
             </TouchableOpacity>
-            <View style={styles.controlButton} />
+            <TouchableOpacity style={styles.controlButton} onPress={toggleCameraFacing}>
+              <Ionicons name="camera-reverse" size={32} color="white" />
+            </TouchableOpacity>
           </View>
         </>
       ) : (

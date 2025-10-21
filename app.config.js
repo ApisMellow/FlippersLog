@@ -23,7 +23,8 @@ export default {
       supportsTablet: true,
       bundleIdentifier: 'com.flipperslog.app',
       infoPlist: {
-        NSCameraUsageDescription: 'This app needs camera access to scan pinball scores.'
+        NSCameraUsageDescription: 'This app needs camera access to scan pinball scores.',
+        NSPhotoLibraryUsageDescription: 'This app needs photo library access to analyze existing pinball score photos.'
       }
     },
     android: {
