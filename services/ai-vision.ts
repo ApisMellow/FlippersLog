@@ -2,6 +2,7 @@
 // This will use Claude API or OpenAI Vision API
 import Anthropic from '@anthropic-ai/sdk';
 import * as FileSystem from 'expo-file-system';
+import * as ImageManipulator from 'expo-image-manipulator';
 import Constants from 'expo-constants';
 
 export interface VisionResult {
@@ -13,23 +14,10 @@ export interface VisionResult {
   error?: string; // Error message if API call fails
 }
 
-// Helper function to detect media type from URI
-function getMediaType(uri: string): 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif' {
-  const ext = uri.split('.').pop()?.toLowerCase();
-  console.log('[AI Vision] File extension detected:', ext);
-
-  switch(ext) {
-    case 'png': return 'image/png';
-    case 'jpg':
-    case 'jpeg': return 'image/jpeg';
-    case 'heic':
-      console.log('[AI Vision] HEIC detected - converting to jpeg media type');
-      return 'image/jpeg'; // Anthropic SDK doesn't support heic in types but accepts it, fallback to jpeg
-    case 'webp': return 'image/webp';
-    default:
-      console.log('[AI Vision] Unknown extension - using jpeg as fallback');
-      return 'image/jpeg'; // fallback
-  }
+// Helper function to get media type - always returns jpeg since we convert all images
+function getMediaType(uri: string): 'image/jpeg' {
+  // We convert all images to JPEG before sending to API, so always return jpeg
+  return 'image/jpeg';
 }
 
 export const aiVision = {
@@ -46,8 +34,17 @@ export const aiVision = {
       // Debug: Log the photo URI
       console.log('[AI Vision] Photo URI:', photoUri);
 
+      // Convert image to JPEG (handles HEIC and other formats)
+      console.log('[AI Vision] Converting image to JPEG format...');
+      const manipResult = await ImageManipulator.manipulateAsync(
+        photoUri,
+        [], // no transformations, just format conversion
+        { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      console.log('[AI Vision] Image converted to JPEG:', manipResult.uri);
+
       // Read photo as base64
-      const base64 = await FileSystem.readAsStringAsync(photoUri, {
+      const base64 = await FileSystem.readAsStringAsync(manipResult.uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
@@ -56,9 +53,9 @@ export const aiVision = {
       console.log('[AI Vision] Base64 first 50 chars:', base64.substring(0, 50));
       console.log('[AI Vision] Has data URI prefix:', base64.startsWith('data:'));
 
-      // Detect media type
-      const mediaType = getMediaType(photoUri);
-      console.log('[AI Vision] Detected media type:', mediaType);
+      // Always use image/jpeg since we converted it
+      const mediaType = 'image/jpeg';
+      console.log('[AI Vision] Using media type:', mediaType);
 
       // Initialize Claude client
       const anthropic = new Anthropic({ apiKey });
