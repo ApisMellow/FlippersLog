@@ -21,7 +21,10 @@
     "react-native-safe-area-context": "~5.0.0",
     "react-native-screens": "~4.6.0",
     "@expo/vector-icons": "^15.0.0",
-    "@react-native-async-storage/async-storage": "~2.1.0"
+    "@react-native-async-storage/async-storage": "~2.1.0",
+    "@anthropic-ai/sdk": "^0.32.0",
+    "expo-file-system": "~18.0.0",
+    "expo-image-picker": "~16.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
