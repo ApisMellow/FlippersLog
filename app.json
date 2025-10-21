@@ -6,6 +6,9 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
+    "extra": {
+      "anthropicApiKey": process.env.ANTHROPIC_API_KEY
+    },
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
