@@ -116,6 +116,9 @@ Rules:
       // Extract JSON from response (handle markdown code blocks and backticks)
       let jsonText = textContent.text.trim();
 
+      // Add this line to log raw response for debugging
+      console.log('[AI Vision] Raw Claude response:', jsonText);
+
       // Remove markdown code blocks: ```json ... ``` or ``` ... ```
       jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
 
