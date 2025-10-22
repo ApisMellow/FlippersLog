@@ -130,7 +130,10 @@ export const storage = {
       return tables
         .map(table => {
           const tableScores = scores
-            .filter(s => s.tableId === table.id)
+            .filter(s =>
+              s.tableId === table.id ||  // Legacy model: match by tableId
+              s.tableName === table.name  // New model: match by tableName
+            )
             .sort((a, b) => b.score - a.score)
             .slice(0, 3); // Top 3 scores
 

@@ -18,10 +18,23 @@ export default function ReviewScore() {
   const isLowConfidence = confidence < 0.5;
 
   const handleAccept = async () => {
+    // If no table name detected, force user to enter one
+    if (!tableName || !tableName.trim()) {
+      router.push({
+        pathname: '/edit-table',
+        params: {
+          detectedScore: params.detectedScore,
+          detectedTableName: '',
+          photoUri: params.photoUri,
+        },
+      });
+      return;
+    }
+
     try {
       await storage.addScore({
         score,
-        tableName: tableName || 'Unknown Table',
+        tableName: tableName,
         date: new Date().toISOString(),
         photoUri: params.photoUri,
       });

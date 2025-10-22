@@ -146,4 +146,66 @@ describe('EditTable', () => {
     expect(await findByText('Medieval Madness')).toBeTruthy();
     expect(await findByText('Attack from Mars')).toBeTruthy();
   });
+
+  it('should filter quick select list as user types', async () => {
+    const { storage } = require('@/services/storage');
+    storage.getTables.mockResolvedValue([
+      { name: 'Medieval Madness', id: '1' },
+      { name: 'Attack from Mars', id: '2' },
+      { name: 'Batman', id: '3' },
+    ]);
+
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '1000',
+    });
+
+    const { findByPlaceholderText, findByText, queryByText } = render(<EditTable />);
+
+    // Wait for tables to load
+    await waitFor(() => {
+      expect(storage.getTables).toHaveBeenCalled();
+    });
+
+    // Initially, all tables should be visible
+    expect(await findByText('Medieval Madness')).toBeTruthy();
+    expect(await findByText('Attack from Mars')).toBeTruthy();
+    expect(await findByText('Batman')).toBeTruthy();
+
+    // Type "med" - should only show "Medieval Madness"
+    const input = await findByPlaceholderText('Enter table name');
+    fireEvent.changeText(input, 'med');
+
+    await waitFor(() => {
+      expect(queryByText('Medieval Madness')).toBeTruthy();
+      expect(queryByText('Attack from Mars')).toBeNull();
+      expect(queryByText('Batman')).toBeNull();
+    });
+
+    // Type "bat" - should only show "Batman"
+    fireEvent.changeText(input, 'bat');
+
+    await waitFor(() => {
+      expect(queryByText('Medieval Madness')).toBeNull();
+      expect(queryByText('Attack from Mars')).toBeNull();
+      expect(queryByText('Batman')).toBeTruthy();
+    });
+
+    // Type "mars" - should only show "Attack from Mars"
+    fireEvent.changeText(input, 'mars');
+
+    await waitFor(() => {
+      expect(queryByText('Medieval Madness')).toBeNull();
+      expect(queryByText('Attack from Mars')).toBeTruthy();
+      expect(queryByText('Batman')).toBeNull();
+    });
+
+    // Type "xyz" - should show no tables (allows creating new table)
+    fireEvent.changeText(input, 'xyz');
+
+    await waitFor(() => {
+      expect(queryByText('Medieval Madness')).toBeNull();
+      expect(queryByText('Attack from Mars')).toBeNull();
+      expect(queryByText('Batman')).toBeNull();
+    });
+  });
 });

@@ -109,15 +109,19 @@ export default function EditTable() {
         {existingTables.length > 0 && (
           <View style={styles.quickSelect}>
             <Text style={styles.quickSelectLabel}>Quick Select:</Text>
-            {existingTables.map((table) => (
-              <Pressable
-                key={table.id}
-                style={styles.tableOption}
-                onPress={() => handleSelectTable(table.name)}
-              >
-                <Text style={styles.tableOptionText}>{table.name}</Text>
-              </Pressable>
-            ))}
+            {existingTables
+              .filter(table =>
+                table.name.toLowerCase().includes(tableName.toLowerCase())
+              )
+              .map((table) => (
+                <Pressable
+                  key={table.id}
+                  style={styles.tableOption}
+                  onPress={() => handleSelectTable(table.name)}
+                >
+                  <Text style={styles.tableOptionText}>{table.name}</Text>
+                </Pressable>
+              ))}
           </View>
         )}
       </View>

@@ -158,6 +158,81 @@ describe('Storage Service', () => {
     });
   });
 
+  describe('getTablesWithScores', () => {
+    it('should return tables with scores using tableName (new model)', async () => {
+      // This reproduces the bug: addScore saves with tableName,
+      // but getTablesWithScores filters by tableId only
+      await storage.addScore({ score: 157308820, tableName: 'Batman', date: '2024-10-21' });
+      await storage.addScore({ score: 125000000, tableName: 'Batman', date: '2024-10-20' });
+      await storage.addScore({ score: 50000000, tableName: 'Medieval Madness', date: '2024-10-19' });
+
+      const tablesWithScores = await storage.getTablesWithScores();
+
+      // Should return 2 tables
+      expect(tablesWithScores).toHaveLength(2);
+
+      // Batman table should exist with 2 scores
+      const batmanTable = tablesWithScores.find(t => t.name === 'Batman');
+      expect(batmanTable).toBeDefined();
+      expect(batmanTable?.topScores).toHaveLength(2);
+      expect(batmanTable?.topScores[0].score).toBe(157308820);
+      expect(batmanTable?.topScores[1].score).toBe(125000000);
+
+      // Medieval Madness table should exist with 1 score
+      const mmTable = tablesWithScores.find(t => t.name === 'Medieval Madness');
+      expect(mmTable).toBeDefined();
+      expect(mmTable?.topScores).toHaveLength(1);
+      expect(mmTable?.topScores[0].score).toBe(50000000);
+    });
+
+    it('should return tables with scores using tableId (legacy model)', async () => {
+      // Add tables first (legacy model)
+      const table1 = await storage.saveTable({ name: 'Attack from Mars' });
+      const table2 = await storage.saveTable({ name: 'The Addams Family' });
+
+      // Add scores with tableId (legacy)
+      await storage.saveScore({ score: 100000000, tableId: table1.id, date: '2024-10-21' });
+      await storage.saveScore({ score: 75000000, tableId: table1.id, date: '2024-10-20' });
+      await storage.saveScore({ score: 60000000, tableId: table2.id, date: '2024-10-19' });
+
+      const tablesWithScores = await storage.getTablesWithScores();
+
+      // Should return 2 tables
+      expect(tablesWithScores).toHaveLength(2);
+
+      // Attack from Mars should have 2 scores
+      const afmTable = tablesWithScores.find(t => t.name === 'Attack from Mars');
+      expect(afmTable).toBeDefined();
+      expect(afmTable?.topScores).toHaveLength(2);
+
+      // The Addams Family should have 1 score
+      const tafTable = tablesWithScores.find(t => t.name === 'The Addams Family');
+      expect(tafTable).toBeDefined();
+      expect(tafTable?.topScores).toHaveLength(1);
+    });
+
+    it('should handle mixed tableId and tableName scores', async () => {
+      // Add a table (legacy)
+      const table = await storage.saveTable({ name: 'Twilight Zone' });
+
+      // Add legacy score with tableId
+      await storage.saveScore({ score: 50000000, tableId: table.id, date: '2024-10-19' });
+
+      // Add new score with tableName
+      await storage.addScore({ score: 75000000, tableName: 'Twilight Zone', date: '2024-10-20' });
+
+      const tablesWithScores = await storage.getTablesWithScores();
+
+      // Should return 1 table with both scores
+      expect(tablesWithScores).toHaveLength(1);
+      const tzTable = tablesWithScores[0];
+      expect(tzTable.name).toBe('Twilight Zone');
+      expect(tzTable.topScores).toHaveLength(2);
+      expect(tzTable.topScores[0].score).toBe(75000000);
+      expect(tzTable.topScores[1].score).toBe(50000000);
+    });
+  });
+
   // Legacy tests for backward compatibility with tableId model
   describe('deleteScore (legacy tableId)', () => {
     it('should delete a score by id', async () => {
