@@ -5,7 +5,6 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { aiVision } from '@/services/ai-vision';
-import { storage } from '@/services/storage';
 
 export default function CaptureScreen() {
   const router = useRouter();
@@ -72,36 +71,32 @@ export default function CaptureScreen() {
     try {
       const result = await aiVision.analyzePhoto(photo);
 
-      // Save the table if it doesn't exist
-      const table = await storage.saveTable({
-        name: result.tableName || 'Unknown Table',
-        manufacturer: result.manufacturer,
+      // Check if there was an error in AI processing
+      if (result.error) {
+        // Navigate to manual entry screen on AI error
+        router.push({
+          pathname: '/edit-score',
+          params: { photoUri: photo },
+        });
+        return;
+      }
+
+      // Navigate to review screen with AI results
+      router.push({
+        pathname: '/review-score',
+        params: {
+          photoUri: photo,
+          detectedScore: result.score.toString(),
+          detectedTableName: result.tableName || '',
+          confidence: result.confidence.toString(),
+        },
       });
-
-      // Save the score
-      await storage.saveScore({
-        tableId: table.id,
-        score: result.score,
-        date: new Date().toISOString(),
-        photoUri: photo,
-      });
-
-      const message = result.isMockData
-        ? `⚠️ Using Test Data\n\n${result.tableName}\nScore: ${result.score.toLocaleString()}\n\nThis is mock data. To use real AI analysis, add your API key in settings.`
-        : `${result.tableName}\nScore: ${result.score.toLocaleString()}`;
-
-      Alert.alert(
-        result.isMockData ? 'Test Data Saved' : 'Score Saved!',
-        message,
-        [
-          {
-            text: 'OK',
-            onPress: () => router.back(),
-          },
-        ]
-      );
     } catch (error) {
-      Alert.alert('Error', 'Failed to analyze photo. Please try again or enter manually.');
+      // On error, go to manual entry
+      router.push({
+        pathname: '/edit-score',
+        params: { photoUri: photo },
+      });
     } finally {
       setAnalyzing(false);
     }
