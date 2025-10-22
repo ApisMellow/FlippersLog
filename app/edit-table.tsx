@@ -1,0 +1,208 @@
+import { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, Pressable, Alert, ScrollView } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { storage } from '@/services/storage';
+
+interface Table {
+  id: string;
+  name: string;
+}
+
+export default function EditTable() {
+  const params = useLocalSearchParams<{
+    scoreId?: string;
+    detectedScore?: string;
+    detectedTableName?: string;
+    photoUri?: string;
+  }>();
+
+  const router = useRouter();
+  const isEditMode = !!params.scoreId;
+
+  const [tableName, setTableName] = useState(params.detectedTableName || '');
+  const [score, setScore] = useState(params.detectedScore || '');
+  const [photoUri, setPhotoUri] = useState(params.photoUri);
+  const [existingTables, setExistingTables] = useState<Table[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      // Load existing score if in edit mode
+      if (params.scoreId) {
+        const existingScore = await storage.getScoreById(params.scoreId);
+        if (existingScore) {
+          setScore(existingScore.score.toString());
+          setTableName(existingScore.tableName);
+          setPhotoUri(existingScore.photoUri);
+        }
+      }
+
+      // Load existing tables
+      const tables = await storage.getTables();
+      setExistingTables(tables);
+      setLoading(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load data');
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!tableName.trim()) {
+      Alert.alert('Error', 'Table name cannot be empty');
+      return;
+    }
+
+    try {
+      if (isEditMode) {
+        await storage.updateScore(params.scoreId!, { tableName: tableName.trim() });
+      } else {
+        await storage.addScore({
+          score: parseInt(score, 10),
+          tableName: tableName.trim(),
+          date: new Date().toISOString(),
+          photoUri,
+        });
+      }
+      router.push('/(tabs)');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save');
+    }
+  };
+
+  const handleCancel = () => {
+    router.back();
+  };
+
+  const handleSelectTable = (name: string) => {
+    setTableName(name);
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>{isEditMode ? 'Edit Table Name' : 'Correct Table Name'}</Text>
+
+      <View style={styles.form}>
+        <Text style={styles.label}>Score: {parseInt(score, 10).toLocaleString()}</Text>
+
+        <Text style={styles.label}>Table Name:</Text>
+        <TextInput
+          style={styles.input}
+          value={tableName}
+          onChangeText={setTableName}
+          placeholder="Enter table name"
+          autoCapitalize="words"
+        />
+
+        {existingTables.length > 0 && (
+          <View style={styles.quickSelect}>
+            <Text style={styles.quickSelectLabel}>Quick Select:</Text>
+            {existingTables.map((table) => (
+              <Pressable
+                key={table.id}
+                style={styles.tableOption}
+                onPress={() => handleSelectTable(table.name)}
+              >
+                <Text style={styles.tableOptionText}>{table.name}</Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Pressable style={styles.saveButton} onPress={handleSave}>
+          <Text style={styles.saveButtonText}>Save</Text>
+        </Pressable>
+
+        <Pressable style={styles.cancelButton} onPress={handleCancel}>
+          <Text style={styles.cancelButtonText}>Cancel</Text>
+        </Pressable>
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  form: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 18,
+    marginBottom: 15,
+  },
+  quickSelect: {
+    marginTop: 10,
+  },
+  quickSelectLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  tableOption: {
+    backgroundColor: '#f5f5f5',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  tableOptionText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  buttonContainer: {
+    gap: 10,
+    marginBottom: 30,
+  },
+  saveButton: {
+    backgroundColor: '#4CAF50',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  cancelButton: {
+    backgroundColor: '#e0e0e0',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#666',
+    fontSize: 16,
+  },
+});
