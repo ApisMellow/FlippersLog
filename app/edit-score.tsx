@@ -30,7 +30,7 @@ export default function EditScore() {
       const existingScore = await storage.getScoreById(params.scoreId!);
       if (existingScore) {
         setScore(existingScore.score.toString());
-        setTableName(existingScore.tableName);
+        setTableName(existingScore.tableName || '');
         setPhotoUri(existingScore.photoUri);
       }
       setLoading(false);
