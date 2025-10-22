@@ -1,15 +1,32 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react-native';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react-native';
 import HomeScreen from '@/app/index';
 import { storage } from '@/services/storage';
+import { formatScoreDate } from '@/utils/date-format';
+import { useRouter } from 'expo-router';
+
+// Mock expo-router
+jest.mock('expo-router', () => ({
+  useRouter: jest.fn(),
+  useFocusEffect: jest.fn((callback) => {
+    // Call the callback immediately to simulate screen focus
+    callback();
+  }),
+}));
 
 // Mock the storage
 jest.mock('@/services/storage');
 const mockStorage = storage as jest.Mocked<typeof storage>;
 
 describe('Home Screen', () => {
+  const mockRouter = {
+    push: jest.fn(),
+    back: jest.fn(),
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    (useRouter as jest.Mock).mockReturnValue(mockRouter);
   });
 
   it('should display scores after navigating back from manual entry', async () => {
@@ -46,6 +63,82 @@ describe('Home Screen', () => {
     await waitFor(() => {
       expect(screen.getByText('Medieval Madness')).toBeTruthy();
       expect(screen.getByText('125,000,000')).toBeTruthy();
+    });
+  });
+
+  it('should display formatted date under each score', async () => {
+    const mockScores = [
+      {
+        id: '1',
+        name: 'Test Table',
+        topScores: [{
+          id: 'score-1',
+          score: 1000000,
+          tableName: 'Test Table',
+          date: '2024-10-10T12:00:00Z',
+        }],
+      },
+    ];
+
+    mockStorage.getTablesWithScores.mockResolvedValue(mockScores);
+
+    const { findByText } = render(<HomeScreen />);
+
+    const formattedDate = formatScoreDate('2024-10-10T12:00:00Z');
+    expect(await findByText(formattedDate)).toBeTruthy();
+  });
+
+  it('should navigate to edit-score when edit button tapped', async () => {
+    const mockScores = [
+      {
+        id: '1',
+        name: 'Test Table',
+        topScores: [{
+          id: 'score-123',
+          score: 1000000,
+          tableName: 'Test Table',
+          date: '2024-10-10T12:00:00Z',
+        }],
+      },
+    ];
+
+    mockStorage.getTablesWithScores.mockResolvedValue(mockScores);
+
+    const { findByTestId } = render(<HomeScreen />);
+
+    const editButton = await findByTestId('edit-score-score-123');
+    fireEvent.press(editButton);
+
+    expect(mockRouter.push).toHaveBeenCalledWith({
+      pathname: '/edit-score',
+      params: { scoreId: 'score-123' },
+    });
+  });
+
+  it('should delete score when delete button tapped', async () => {
+    const mockScores = [
+      {
+        id: '1',
+        name: 'Test Table',
+        topScores: [{
+          id: 'score-123',
+          score: 1000000,
+          tableName: 'Test Table',
+          date: '2024-10-10T12:00:00Z',
+        }],
+      },
+    ];
+
+    mockStorage.getTablesWithScores.mockResolvedValue(mockScores);
+    mockStorage.deleteScore.mockResolvedValue(undefined);
+
+    const { findByTestId } = render(<HomeScreen />);
+
+    const deleteButton = await findByTestId('delete-score-score-123');
+    fireEvent.press(deleteButton);
+
+    await waitFor(() => {
+      expect(mockStorage.deleteScore).toHaveBeenCalledWith('score-123');
     });
   });
 });

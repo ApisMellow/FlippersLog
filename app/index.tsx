@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Pressable, Alert } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { storage } from '@/services/storage';
 import { TableWithScores } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
+import { formatScoreDate } from '@/utils/date-format';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -32,9 +33,21 @@ export default function HomeScreen() {
     return score.toLocaleString();
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
+  const handleEditScore = (scoreId: string) => {
+    router.push({
+      pathname: '/edit-score',
+      params: { scoreId },
+    });
+  };
+
+  const handleDeleteScore = async (scoreId: string) => {
+    try {
+      await storage.deleteScore(scoreId);
+      // Reload scores
+      await loadTables();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to delete score');
+    }
   };
 
   return (
@@ -79,10 +92,26 @@ export default function HomeScreen() {
                       ]}>
                         {formatScore(score.score)}
                       </Text>
-                      <Text style={styles.dateText}>{formatDate(score.date)}</Text>
+                      <Text style={styles.dateText}>{formatScoreDate(score.date)}</Text>
+                    </View>
+                    <View style={styles.scoreActions}>
+                      <Pressable
+                        testID={`edit-score-${score.id}`}
+                        onPress={() => handleEditScore(score.id)}
+                        style={styles.actionButton}
+                      >
+                        <Text style={styles.actionButtonText}>Edit</Text>
+                      </Pressable>
+                      <Pressable
+                        testID={`delete-score-${score.id}`}
+                        onPress={() => handleDeleteScore(score.id)}
+                        style={styles.actionButton}
+                      >
+                        <Text style={styles.actionButtonText}>Delete</Text>
+                      </Pressable>
                     </View>
                     {score.photoUri && (
-                      <Ionicons name="camera" size={16} color="#999" />
+                      <Ionicons name="camera" size={16} color="#999" style={styles.cameraIcon} />
                     )}
                   </View>
                 ))}
@@ -198,6 +227,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     marginTop: 2,
+  },
+  scoreActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
+    padding: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 4,
+  },
+  actionButtonText: {
+    fontSize: 12,
+    color: '#333',
+  },
+  cameraIcon: {
+    marginLeft: 8,
   },
   fabContainer: {
     position: 'absolute',
