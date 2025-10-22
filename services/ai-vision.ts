@@ -67,6 +67,7 @@ export const aiVision = {
       const response = await anthropic.messages.create({
         model: 'claude-sonnet-4-5-20250929',
         max_tokens: 1024,
+        temperature: 0.0,  // Add this line for maximum determinism in OCR
         messages: [{
           role: 'user',
           content: [
@@ -82,11 +83,17 @@ export const aiVision = {
               type: 'text',
               text: `You are analyzing a pinball machine scoreboard photo. Extract the score (required) and table name (optional if visible).
 
+CRITICAL: Read each digit of the score very carefully, from left to right. Common mistakes:
+- Confusing 6 and 8
+- Confusing 1 and 7
+- Missing commas or misreading digit groupings
+
 Return ONLY valid JSON in this exact format:
 {"score": <number>, "tableName": "<string or null>"}
 
 Rules:
 - score must be a number (no commas, no letters)
+- Double-check each digit before responding
 - If you can't read the score clearly, return null for score
 - tableName is optional - only include if clearly visible
 - No additional text, only the JSON object`

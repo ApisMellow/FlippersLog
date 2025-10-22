@@ -63,4 +63,26 @@ describe('AI Vision - Real API', () => {
     expect(result.error).toBeTruthy();
     expect(result.isMockData).toBe(true);
   });
+
+  it('should use temperature 0.0 for deterministic results', async () => {
+    const Anthropic = require('@anthropic-ai/sdk').default;
+    const mockCreate = jest.fn().mockResolvedValue({
+      content: [{
+        type: 'text',
+        text: '{"score": 42000000, "tableName": "Test Table"}'
+      }]
+    });
+
+    Anthropic.mockImplementation(() => ({
+      messages: { create: mockCreate }
+    }));
+
+    await aiVision.analyzePhoto('test://photo.jpg');
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        temperature: 0.0
+      })
+    );
+  });
 });
