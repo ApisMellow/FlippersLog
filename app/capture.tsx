@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Ale
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { aiVision } from '@/services/ai-vision';
-import { storage } from '@/services/storage';
 
 export default function CaptureScreen() {
   const router = useRouter();
@@ -41,6 +41,25 @@ export default function CaptureScreen() {
     }
   };
 
+  const pickFromLibrary = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert('Permission Required', 'Please grant photo library access to select photos.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setPhoto(result.assets[0].uri);
+    }
+  };
+
   const retakePhoto = () => {
     setPhoto(null);
   };
@@ -52,36 +71,32 @@ export default function CaptureScreen() {
     try {
       const result = await aiVision.analyzePhoto(photo);
 
-      // Save the table if it doesn't exist
-      const table = await storage.saveTable({
-        name: result.tableName,
-        manufacturer: result.manufacturer,
+      // Check if there was an error in AI processing
+      if (result.error) {
+        // Navigate to manual entry screen on AI error
+        router.push({
+          pathname: '/edit-score',
+          params: { photoUri: photo },
+        });
+        return;
+      }
+
+      // Navigate to review screen with AI results
+      router.push({
+        pathname: '/review-score',
+        params: {
+          photoUri: photo,
+          detectedScore: result.score.toString(),
+          detectedTableName: result.tableName || '',
+          confidence: result.confidence.toString(),
+        },
       });
-
-      // Save the score
-      await storage.saveScore({
-        tableId: table.id,
-        score: result.score,
-        date: new Date().toISOString(),
-        photoUri: photo,
-      });
-
-      const message = result.isMockData
-        ? `⚠️ Using Test Data\n\n${result.tableName}\nScore: ${result.score.toLocaleString()}\n\nThis is mock data. To use real AI analysis, add your API key in settings.`
-        : `${result.tableName}\nScore: ${result.score.toLocaleString()}`;
-
-      Alert.alert(
-        result.isMockData ? 'Test Data Saved' : 'Score Saved!',
-        message,
-        [
-          {
-            text: 'OK',
-            onPress: () => router.back(),
-          },
-        ]
-      );
     } catch (error) {
-      Alert.alert('Error', 'Failed to analyze photo. Please try again or enter manually.');
+      // On error, go to manual entry
+      router.push({
+        pathname: '/edit-score',
+        params: { photoUri: photo },
+      });
     } finally {
       setAnalyzing(false);
     }
@@ -103,13 +118,15 @@ export default function CaptureScreen() {
             </View>
           </CameraView>
           <View style={styles.controls}>
-            <TouchableOpacity style={styles.controlButton} onPress={toggleCameraFacing}>
-              <Ionicons name="camera-reverse" size={32} color="white" />
+            <TouchableOpacity style={styles.controlButton} onPress={pickFromLibrary}>
+              <Ionicons name="images" size={32} color="white" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
               <View style={styles.captureButtonInner} />
             </TouchableOpacity>
-            <View style={styles.controlButton} />
+            <TouchableOpacity style={styles.controlButton} onPress={toggleCameraFacing}>
+              <Ionicons name="camera-reverse" size={32} color="white" />
+            </TouchableOpacity>
           </View>
         </>
       ) : (
@@ -118,7 +135,12 @@ export default function CaptureScreen() {
           {analyzing && (
             <View style={styles.analyzingOverlay}>
               <ActivityIndicator size="large" color="white" />
-              <Text style={styles.analyzingText}>Analyzing photo...</Text>
+              <Text style={styles.analyzingText}>
+                {photo ? 'Analyzing photo with AI...' : 'Processing...'}
+              </Text>
+              <Text style={styles.analyzingSubtext}>
+                This may take a few seconds
+              </Text>
             </View>
           )}
           <View style={styles.previewControls}>
@@ -236,6 +258,11 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     marginTop: 16,
+  },
+  analyzingSubtext: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 14,
+    marginTop: 8,
   },
   previewControls: {
     flexDirection: 'row',

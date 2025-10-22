@@ -1,9 +1,11 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Pressable, Alert } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { storage } from '@/services/storage';
 import { TableWithScores } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
+import { formatScoreDate } from '@/utils/date-format';
+import { Swipeable } from 'react-native-gesture-handler';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -32,9 +34,34 @@ export default function HomeScreen() {
     return score.toLocaleString();
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
+  const handleEditScore = (scoreId: string) => {
+    router.push({
+      pathname: '/edit-score',
+      params: { scoreId },
+    });
+  };
+
+  const handleDeleteScore = async (scoreId: string) => {
+    try {
+      await storage.deleteScore(scoreId);
+      // Reload scores
+      await loadTables();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to delete score');
+    }
+  };
+
+  const renderRightActions = (scoreId: string) => {
+    return (
+      <Pressable
+        testID={`swipe-delete-${scoreId}`}
+        onPress={() => handleDeleteScore(scoreId)}
+        style={styles.swipeDeleteButton}
+      >
+        <Ionicons name="trash-outline" size={24} color="white" />
+        <Text style={styles.swipeDeleteText}>Delete</Text>
+      </Pressable>
+    );
   };
 
   return (
@@ -49,6 +76,7 @@ export default function HomeScreen() {
         <FlatList
           data={tables}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: 100 }}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
@@ -63,28 +91,49 @@ export default function HomeScreen() {
 
               <View style={styles.scoresContainer}>
                 {item.topScores.map((score, index) => (
-                  <View key={score.id} style={styles.scoreRow}>
-                    <View style={styles.scoreRank}>
-                      <Text style={[
-                        styles.rankText,
-                        index === 0 && styles.rankTextFirst
-                      ]}>
-                        #{index + 1}
-                      </Text>
+                  <Swipeable
+                    key={score.id}
+                    renderRightActions={() => renderRightActions(score.id)}
+                  >
+                    <View style={styles.scoreRow}>
+                      <View style={styles.scoreRank}>
+                        <Text style={[
+                          styles.rankText,
+                          index === 0 && styles.rankTextFirst
+                        ]}>
+                          #{index + 1}
+                        </Text>
+                      </View>
+                      <View style={styles.scoreDetails}>
+                        <Text style={[
+                          styles.scoreText,
+                          index === 0 && styles.scoreTextFirst
+                        ]}>
+                          {formatScore(score.score)}
+                        </Text>
+                        <Text style={styles.dateText}>{formatScoreDate(score.date)}</Text>
+                      </View>
+                      <View style={styles.scoreActions}>
+                        <Pressable
+                          testID={`edit-score-${score.id}`}
+                          onPress={() => handleEditScore(score.id)}
+                          style={styles.actionButton}
+                        >
+                          <Text style={styles.actionButtonText}>Edit</Text>
+                        </Pressable>
+                        <Pressable
+                          testID={`delete-score-${score.id}`}
+                          onPress={() => handleDeleteScore(score.id)}
+                          style={styles.actionButton}
+                        >
+                          <Text style={styles.actionButtonText}>Delete</Text>
+                        </Pressable>
+                      </View>
+                      {score.photoUri && (
+                        <Ionicons name="camera" size={16} color="#999" style={styles.cameraIcon} />
+                      )}
                     </View>
-                    <View style={styles.scoreDetails}>
-                      <Text style={[
-                        styles.scoreText,
-                        index === 0 && styles.scoreTextFirst
-                      ]}>
-                        {formatScore(score.score)}
-                      </Text>
-                      <Text style={styles.dateText}>{formatDate(score.date)}</Text>
-                    </View>
-                    {score.photoUri && (
-                      <Ionicons name="camera" size={16} color="#999" />
-                    )}
-                  </View>
+                  </Swipeable>
                 ))}
               </View>
             </View>
@@ -169,6 +218,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
+    backgroundColor: 'white',
   },
   scoreRank: {
     width: 40,
@@ -199,6 +249,22 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 2,
   },
+  scoreActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
+    padding: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 4,
+  },
+  actionButtonText: {
+    fontSize: 12,
+    color: '#333',
+  },
+  cameraIcon: {
+    marginLeft: 8,
+  },
   fabContainer: {
     position: 'absolute',
     bottom: 20,
@@ -224,5 +290,18 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     backgroundColor: '#5AC8FA',
+  },
+  swipeDeleteButton: {
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '100%',
+  },
+  swipeDeleteText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
   },
 });
