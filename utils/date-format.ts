@@ -10,9 +10,9 @@ const MONTH_NAMES = [
  */
 export function formatScoreDate(dateString: string): string {
   const date = new Date(dateString);
-  const month = MONTH_NAMES[date.getMonth()];
-  const day = date.getDate();
-  const year = date.getFullYear().toString().slice(-2);
+  const month = MONTH_NAMES[date.getUTCMonth()];
+  const day = date.getUTCDate();
+  const year = date.getUTCFullYear().toString().slice(-2);
 
   return `${month} ${day}, '${year}`;
 }
