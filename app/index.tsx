@@ -62,6 +62,7 @@ export default function HomeScreen() {
         <FlatList
           data={tables}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: 100 }}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
