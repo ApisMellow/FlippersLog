@@ -59,7 +59,7 @@ export default function EditScore() {
           photoUri,
         });
       }
-      router.push('/(tabs)');
+      router.push('/');
     } catch (error) {
       Alert.alert('Error', 'Failed to save score');
     }
@@ -70,7 +70,7 @@ export default function EditScore() {
 
     try {
       await storage.deleteScore(params.scoreId);
-      router.push('/(tabs)');
+      router.push('/');
     } catch (error) {
       Alert.alert('Error', 'Failed to delete score');
     }

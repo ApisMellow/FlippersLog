@@ -25,7 +25,7 @@ export default function ReviewScore() {
         date: new Date().toISOString(),
         photoUri: params.photoUri,
       });
-      router.push('/(tabs)');
+      router.push('/');
     } catch (error) {
       Alert.alert('Error', 'Failed to save score');
     }

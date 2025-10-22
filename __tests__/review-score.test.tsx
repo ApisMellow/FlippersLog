@@ -120,7 +120,7 @@ describe('ReviewScore', () => {
         date: expect.any(String),
         photoUri: 'test://photo.jpg',
       });
-      expect(mockRouter.push).toHaveBeenCalledWith('/(tabs)');
+      expect(mockRouter.push).toHaveBeenCalledWith('/');
     });
   });
 

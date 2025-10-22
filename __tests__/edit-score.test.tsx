@@ -91,7 +91,7 @@ describe('EditScore', () => {
         date: expect.any(String),
         photoUri: 'test://photo.jpg',
       });
-      expect(mockRouter.push).toHaveBeenCalledWith('/(tabs)');
+      expect(mockRouter.push).toHaveBeenCalledWith('/');
     });
   });
 
@@ -119,7 +119,7 @@ describe('EditScore', () => {
       expect(storage.updateScore).toHaveBeenCalledWith('score-123', {
         score: 2000000,
       });
-      expect(mockRouter.push).toHaveBeenCalledWith('/(tabs)');
+      expect(mockRouter.push).toHaveBeenCalledWith('/');
     });
   });
 
@@ -163,7 +163,7 @@ describe('EditScore', () => {
 
     await waitFor(() => {
       expect(storage.deleteScore).toHaveBeenCalledWith('score-123');
-      expect(mockRouter.push).toHaveBeenCalledWith('/(tabs)');
+      expect(mockRouter.push).toHaveBeenCalledWith('/');
     });
   });
 

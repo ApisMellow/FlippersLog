@@ -77,7 +77,7 @@ describe('EditTable', () => {
         date: expect.any(String),
         photoUri: 'test://photo.jpg',
       });
-      expect(mockRouter.push).toHaveBeenCalledWith('/(tabs)');
+      expect(mockRouter.push).toHaveBeenCalledWith('/');
     });
   });
 
@@ -105,7 +105,7 @@ describe('EditTable', () => {
       expect(storage.updateScore).toHaveBeenCalledWith('score-123', {
         tableName: 'New Table',
       });
-      expect(mockRouter.push).toHaveBeenCalledWith('/(tabs)');
+      expect(mockRouter.push).toHaveBeenCalledWith('/');
     });
   });
 

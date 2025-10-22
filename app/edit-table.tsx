@@ -68,7 +68,7 @@ export default function EditTable() {
           photoUri,
         });
       }
-      router.push('/(tabs)');
+      router.push('/');
     } catch (error) {
       Alert.alert('Error', 'Failed to save');
     }
