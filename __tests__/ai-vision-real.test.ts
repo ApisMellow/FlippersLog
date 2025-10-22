@@ -85,4 +85,19 @@ describe('AI Vision - Real API', () => {
       })
     );
   });
+
+  it('should resize images to 1568px max width to stay under 5 MB limit', async () => {
+    const ImageManipulator = require('expo-image-manipulator');
+
+    await aiVision.analyzePhoto('test://photo.jpg');
+
+    expect(ImageManipulator.manipulateAsync).toHaveBeenCalledWith(
+      'test://photo.jpg',
+      [{ resize: { width: 1568 } }],
+      expect.objectContaining({
+        compress: 0.9,
+        format: 'jpeg'
+      })
+    );
+  });
 });

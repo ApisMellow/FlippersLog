@@ -35,10 +35,12 @@ export const aiVision = {
       console.log('[AI Vision] Photo URI:', photoUri);
 
       // Convert image to JPEG (handles HEIC and other formats)
+      // Resize to 1568px max width to stay under Claude's 5 MB image limit
+      // Anthropic recommends max 1568px dimension for optimal performance
       console.log('[AI Vision] Converting image to JPEG format...');
       const manipResult = await ImageManipulator.manipulateAsync(
         photoUri,
-        [], // no transformations, just format conversion
+        [{ resize: { width: 1568 } }],
         { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
       );
       console.log('[AI Vision] Image converted to JPEG:', manipResult.uri);
