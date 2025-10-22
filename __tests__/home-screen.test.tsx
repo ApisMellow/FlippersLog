@@ -4,6 +4,7 @@ import HomeScreen from '@/app/index';
 import { storage } from '@/services/storage';
 import { formatScoreDate } from '@/utils/date-format';
 import { useRouter } from 'expo-router';
+import { Swipeable } from 'react-native-gesture-handler';
 
 // Mock expo-router
 jest.mock('expo-router', () => ({
@@ -139,6 +140,29 @@ describe('Home Screen', () => {
 
     await waitFor(() => {
       expect(mockStorage.deleteScore).toHaveBeenCalledWith('score-123');
+    });
+  });
+
+  it('should render swipeable component for each score', async () => {
+    const mockScores = [
+      {
+        id: '1',
+        name: 'Test Table',
+        topScores: [{
+          id: 'score-1',
+          score: 1000000,
+          tableName: 'Test Table',
+          date: '2024-10-10T12:00:00Z',
+        }],
+      },
+    ];
+    mockStorage.getTablesWithScores.mockResolvedValue(mockScores);
+
+    const { UNSAFE_getAllByType } = render(<HomeScreen />);
+
+    await waitFor(() => {
+      const swipeables = UNSAFE_getAllByType(Swipeable);
+      expect(swipeables.length).toBeGreaterThan(0);
     });
   });
 });

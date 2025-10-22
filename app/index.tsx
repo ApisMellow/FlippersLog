@@ -5,6 +5,7 @@ import { storage } from '@/services/storage';
 import { TableWithScores } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { formatScoreDate } from '@/utils/date-format';
+import { Swipeable } from 'react-native-gesture-handler';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -50,6 +51,19 @@ export default function HomeScreen() {
     }
   };
 
+  const renderRightActions = (scoreId: string) => {
+    return (
+      <Pressable
+        testID={`swipe-delete-${scoreId}`}
+        onPress={() => handleDeleteScore(scoreId)}
+        style={styles.swipeDeleteButton}
+      >
+        <Ionicons name="trash-outline" size={24} color="white" />
+        <Text style={styles.swipeDeleteText}>Delete</Text>
+      </Pressable>
+    );
+  };
+
   return (
     <View style={styles.container}>
       {tables.length === 0 ? (
@@ -77,44 +91,49 @@ export default function HomeScreen() {
 
               <View style={styles.scoresContainer}>
                 {item.topScores.map((score, index) => (
-                  <View key={score.id} style={styles.scoreRow}>
-                    <View style={styles.scoreRank}>
-                      <Text style={[
-                        styles.rankText,
-                        index === 0 && styles.rankTextFirst
-                      ]}>
-                        #{index + 1}
-                      </Text>
+                  <Swipeable
+                    key={score.id}
+                    renderRightActions={() => renderRightActions(score.id)}
+                  >
+                    <View style={styles.scoreRow}>
+                      <View style={styles.scoreRank}>
+                        <Text style={[
+                          styles.rankText,
+                          index === 0 && styles.rankTextFirst
+                        ]}>
+                          #{index + 1}
+                        </Text>
+                      </View>
+                      <View style={styles.scoreDetails}>
+                        <Text style={[
+                          styles.scoreText,
+                          index === 0 && styles.scoreTextFirst
+                        ]}>
+                          {formatScore(score.score)}
+                        </Text>
+                        <Text style={styles.dateText}>{formatScoreDate(score.date)}</Text>
+                      </View>
+                      <View style={styles.scoreActions}>
+                        <Pressable
+                          testID={`edit-score-${score.id}`}
+                          onPress={() => handleEditScore(score.id)}
+                          style={styles.actionButton}
+                        >
+                          <Text style={styles.actionButtonText}>Edit</Text>
+                        </Pressable>
+                        <Pressable
+                          testID={`delete-score-${score.id}`}
+                          onPress={() => handleDeleteScore(score.id)}
+                          style={styles.actionButton}
+                        >
+                          <Text style={styles.actionButtonText}>Delete</Text>
+                        </Pressable>
+                      </View>
+                      {score.photoUri && (
+                        <Ionicons name="camera" size={16} color="#999" style={styles.cameraIcon} />
+                      )}
                     </View>
-                    <View style={styles.scoreDetails}>
-                      <Text style={[
-                        styles.scoreText,
-                        index === 0 && styles.scoreTextFirst
-                      ]}>
-                        {formatScore(score.score)}
-                      </Text>
-                      <Text style={styles.dateText}>{formatScoreDate(score.date)}</Text>
-                    </View>
-                    <View style={styles.scoreActions}>
-                      <Pressable
-                        testID={`edit-score-${score.id}`}
-                        onPress={() => handleEditScore(score.id)}
-                        style={styles.actionButton}
-                      >
-                        <Text style={styles.actionButtonText}>Edit</Text>
-                      </Pressable>
-                      <Pressable
-                        testID={`delete-score-${score.id}`}
-                        onPress={() => handleDeleteScore(score.id)}
-                        style={styles.actionButton}
-                      >
-                        <Text style={styles.actionButtonText}>Delete</Text>
-                      </Pressable>
-                    </View>
-                    {score.photoUri && (
-                      <Ionicons name="camera" size={16} color="#999" style={styles.cameraIcon} />
-                    )}
-                  </View>
+                  </Swipeable>
                 ))}
               </View>
             </View>
@@ -199,6 +218,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
+    backgroundColor: 'white',
   },
   scoreRank: {
     width: 40,
@@ -270,5 +290,18 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     backgroundColor: '#5AC8FA',
+  },
+  swipeDeleteButton: {
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '100%',
+  },
+  swipeDeleteText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
   },
 });

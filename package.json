@@ -24,6 +24,7 @@
     "expo-status-bar": "~2.0.0",
     "react": "19.1.0",
     "react-native": "0.81.0",
+    "react-native-gesture-handler": "^2.28.0",
     "react-native-safe-area-context": "~5.0.0",
     "react-native-screens": "~4.6.0"
   },
