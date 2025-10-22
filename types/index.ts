@@ -1,6 +1,7 @@
 export interface Score {
   id: string;
-  tableId: string;
+  tableId?: string; // Legacy - being phased out
+  tableName?: string; // New field - preferred
   score: number;
   date: string; // ISO date string
   photoUri?: string;

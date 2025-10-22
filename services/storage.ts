@@ -17,19 +17,66 @@ export const storage = {
     }
   },
 
-  // Save a new score
+  // Save a new score (legacy method using tableId)
   async saveScore(score: Omit<Score, 'id'>): Promise<Score> {
     try {
       const scores = await this.getScores();
+      // Generate unique ID by combining timestamp with random number to avoid collisions
+      const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const newScore: Score = {
         ...score,
-        id: Date.now().toString(),
+        id,
       };
       scores.push(newScore);
       await AsyncStorage.setItem(SCORES_KEY, JSON.stringify(scores));
       return newScore;
     } catch (error) {
       console.error('Error saving score:', error);
+      throw error;
+    }
+  },
+
+  // Add a new score with tableName (preferred method)
+  async addScore(scoreData: { score: number; tableName: string; date: string; photoUri?: string }): Promise<void> {
+    try {
+      const scores = await this.getScores();
+      // Generate unique ID by combining timestamp with random number to avoid collisions
+      const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const newScore: Score = {
+        id,
+        score: scoreData.score,
+        tableName: scoreData.tableName,
+        date: scoreData.date,
+        photoUri: scoreData.photoUri,
+      };
+      scores.push(newScore);
+      await AsyncStorage.setItem(SCORES_KEY, JSON.stringify(scores));
+
+      // Ensure table exists
+      await this.addTable(scoreData.tableName);
+    } catch (error) {
+      console.error('Error adding score:', error);
+      throw error;
+    }
+  },
+
+  // Add a table by name (creates if doesn't exist)
+  async addTable(tableName: string): Promise<void> {
+    try {
+      const tables = await this.getTables();
+      const existingTable = tables.find(t => t.name === tableName);
+
+      if (!existingTable) {
+        const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const newTable: Table = {
+          id,
+          name: tableName,
+        };
+        tables.push(newTable);
+        await AsyncStorage.setItem(TABLES_KEY, JSON.stringify(tables));
+      }
+    } catch (error) {
+      console.error('Error adding table:', error);
       throw error;
     }
   },
@@ -57,9 +104,11 @@ export const storage = {
         return existingTable;
       }
 
+      // Generate unique ID by combining timestamp with random number to avoid collisions
+      const id = 'id' in table ? table.id : `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const newTable: Table = {
         ...table,
-        id: 'id' in table ? table.id : Date.now().toString(),
+        id,
       };
       tables.push(newTable);
       await AsyncStorage.setItem(TABLES_KEY, JSON.stringify(tables));
@@ -125,6 +174,114 @@ export const storage = {
         year: 1992,
       },
     ];
+  },
+
+  // Delete a score by id (supports both tableId and tableName)
+  async deleteScore(scoreId: string): Promise<void> {
+    try {
+      // Get current scores
+      const scoresJson = await AsyncStorage.getItem(SCORES_KEY);
+      if (!scoresJson) return;
+
+      const scores: Score[] = JSON.parse(scoresJson);
+
+      // Find the score to delete
+      const scoreToDelete = scores.find(s => s.id === scoreId);
+      if (!scoreToDelete) return;
+
+      // Remove the score
+      const updatedScores = scores.filter(s => s.id !== scoreId);
+      await AsyncStorage.setItem(SCORES_KEY, JSON.stringify(updatedScores));
+
+      // Check if this was the last score for the table
+      // Handle both tableName (new) and tableId (legacy)
+      let remainingScoresForTable: Score[];
+      if (scoreToDelete.tableName) {
+        remainingScoresForTable = updatedScores.filter(
+          s => s.tableName === scoreToDelete.tableName
+        );
+      } else {
+        remainingScoresForTable = updatedScores.filter(
+          s => s.tableId === scoreToDelete.tableId
+        );
+      }
+
+      // If no scores remain for this table, remove the table
+      if (remainingScoresForTable.length === 0) {
+        const tablesJson = await AsyncStorage.getItem(TABLES_KEY);
+        if (tablesJson) {
+          const tables: Table[] = JSON.parse(tablesJson);
+          let updatedTables: Table[];
+
+          if (scoreToDelete.tableName) {
+            updatedTables = tables.filter(t => t.name !== scoreToDelete.tableName);
+          } else {
+            updatedTables = tables.filter(t => t.id !== scoreToDelete.tableId);
+          }
+
+          await AsyncStorage.setItem(TABLES_KEY, JSON.stringify(updatedTables));
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting score:', error);
+      throw error;
+    }
+  },
+
+  // Update a score by id
+  async updateScore(scoreId: string, updates: Partial<Omit<Score, 'id'>>): Promise<void> {
+    try {
+      const scoresJson = await AsyncStorage.getItem(SCORES_KEY);
+      if (!scoresJson) return;
+
+      const scores: Score[] = JSON.parse(scoresJson);
+      const scoreIndex = scores.findIndex(s => s.id === scoreId);
+      if (scoreIndex === -1) return;
+
+      const oldScore = scores[scoreIndex];
+      const updatedScore = { ...oldScore, ...updates };
+      scores[scoreIndex] = updatedScore;
+
+      await AsyncStorage.setItem(SCORES_KEY, JSON.stringify(scores));
+
+      // If table name changed, handle table migration
+      if (updates.tableName && updates.tableName !== oldScore.tableName) {
+        // Check if old table should be removed
+        const remainingOldTableScores = scores.filter(
+          s => s.tableName === oldScore.tableName
+        );
+
+        if (remainingOldTableScores.length === 0) {
+          // Remove old table
+          const tablesJson = await AsyncStorage.getItem(TABLES_KEY);
+          if (tablesJson) {
+            const tables: Table[] = JSON.parse(tablesJson);
+            const updatedTables = tables.filter(t => t.name !== oldScore.tableName);
+            await AsyncStorage.setItem(TABLES_KEY, JSON.stringify(updatedTables));
+          }
+        }
+
+        // Ensure new table exists
+        await this.addTable(updates.tableName);
+      }
+    } catch (error) {
+      console.error('Error updating score:', error);
+      throw error;
+    }
+  },
+
+  // Get a score by id
+  async getScoreById(scoreId: string): Promise<Score | null> {
+    try {
+      const scoresJson = await AsyncStorage.getItem(SCORES_KEY);
+      if (!scoresJson) return null;
+
+      const scores: Score[] = JSON.parse(scoresJson);
+      return scores.find(s => s.id === scoreId) || null;
+    } catch (error) {
+      console.error('Error getting score by id:', error);
+      return null;
+    }
   },
 
   // Clear all data (for testing)
