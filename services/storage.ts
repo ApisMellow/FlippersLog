@@ -247,8 +247,9 @@ export const storage = {
       // If table name changed, handle table migration
       if (updates.tableName && updates.tableName !== oldScore.tableName) {
         // Check if old table should be removed
+        // Exclude the current score being updated from the filter
         const remainingOldTableScores = scores.filter(
-          s => s.tableName === oldScore.tableName
+          s => s.tableName === oldScore.tableName && s.id !== scoreId
         );
 
         if (remainingOldTableScores.length === 0) {

@@ -110,6 +110,32 @@ describe('Storage Service', () => {
       expect(tables.find(t => t.name === 'Shared Table')).toBeDefined();
       expect(tables.find(t => t.name === 'Different Table')).toBeDefined();
     });
+
+    it('should remove old table when LAST score is migrated to different table', async () => {
+      // This test exposes the race condition bug
+      // The bug: filter checks the UPDATED scores array for oldScore.tableName
+      // If the score being updated is the only one in the old table,
+      // it won't be found because it now has the new table name
+      await storage.addScore({ score: 5000, tableName: 'Old Table', date: '2024-10-10' });
+
+      const scores = await storage.getScores();
+      const scoreId = scores[0].id;
+
+      // Verify old table exists
+      let tables = await storage.getTables();
+      expect(tables.find(t => t.name === 'Old Table')).toBeDefined();
+
+      // Migrate the only score to a new table
+      await storage.updateScore(scoreId, { tableName: 'New Table' });
+
+      // Old table should be removed since no scores remain
+      tables = await storage.getTables();
+      expect(tables.find(t => t.name === 'Old Table')).toBeUndefined();
+      expect(tables.find(t => t.name === 'New Table')).toBeDefined();
+
+      const updatedScores = await storage.getScores();
+      expect(updatedScores[0].tableName).toBe('New Table');
+    });
   });
 
   describe('getScoreById', () => {
@@ -143,14 +169,11 @@ describe('Storage Service', () => {
       await storage.saveScore({ score: 2000, tableId: table.id, date: '2024-10-11' });
 
       const scores = await storage.getScores();
-      console.log('Scores before delete:', scores);
       const firstScoreId = scores[0].id;
-      console.log('Deleting score with ID:', firstScoreId);
 
       await storage.deleteScore(firstScoreId);
 
       const remaining = await storage.getScores();
-      console.log('Remaining scores:', remaining);
       expect(remaining).toHaveLength(1);
       expect(remaining[0].score).toBe(2000);
     });
