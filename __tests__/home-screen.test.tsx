@@ -107,7 +107,7 @@ describe('Home Screen', () => {
 
     const { findByTestId } = render(<HomeScreen />);
 
-    const editButton = await findByTestId('edit-score-score-123');
+    const editButton = await findByTestId('edit-icon-0');
     fireEvent.press(editButton);
 
     expect(mockRouter.push).toHaveBeenCalledWith({
@@ -116,7 +116,7 @@ describe('Home Screen', () => {
     });
   });
 
-  it('should delete score when delete button tapped', async () => {
+  it('should delete score when swipe delete button tapped', async () => {
     const mockScores = [
       {
         id: '1',
@@ -135,7 +135,7 @@ describe('Home Screen', () => {
 
     const { findByTestId } = render(<HomeScreen />);
 
-    const deleteButton = await findByTestId('delete-score-score-123');
+    const deleteButton = await findByTestId('swipe-delete-score-123');
     fireEvent.press(deleteButton);
 
     await waitFor(() => {
