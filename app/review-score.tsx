@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#3B4F6B',
   },
   photo: {
     width: 200,
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   resultsCard: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#2E3E52',
     padding: 20,
     borderRadius: 10,
     marginVertical: 10,
@@ -136,23 +136,23 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#666',
+    color: '#A0AEC0',
     marginTop: 10,
   },
   score: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#E8EEF5',
   },
   tableName: {
     fontSize: 18,
-    color: '#333',
+    color: '#E8EEF5',
   },
   buttonContainer: {
     marginTop: 20,
   },
   acceptButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#6BA3D4',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -169,13 +169,13 @@ const styles = StyleSheet.create({
   },
   editButton: {
     flex: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#495A73',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
   },
   editButtonText: {
-    color: '#666',
+    color: '#A0AEC0',
     fontSize: 14,
   },
 });

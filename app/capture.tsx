@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   },
   permissionText: {
     fontSize: 18,
-    color: '#999',
+    color: '#A0AEC0',
     marginTop: 16,
     marginBottom: 24,
   },
@@ -271,14 +271,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#6BA3D4',
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 12,
     minWidth: 140,
   },
   buttonSecondary: {
-    backgroundColor: '#666',
+    backgroundColor: '#A0AEC0',
   },
   buttonText: {
     color: 'white',

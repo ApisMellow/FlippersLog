@@ -143,53 +143,56 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#3B4F6B',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: '#E8EEF5',
   },
   form: {
     marginBottom: 20,
   },
   label: {
     fontSize: 16,
-    color: '#666',
+    color: '#A0AEC0',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#495A73',
     borderRadius: 8,
     padding: 12,
     fontSize: 18,
     marginBottom: 15,
+    backgroundColor: '#2E3E52',
+    color: '#E8EEF5',
   },
   quickSelect: {
     marginTop: 10,
   },
   quickSelectLabel: {
     fontSize: 14,
-    color: '#666',
+    color: '#A0AEC0',
     marginBottom: 8,
   },
   tableOption: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#2E3E52',
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
   },
   tableOptionText: {
     fontSize: 16,
-    color: '#333',
+    color: '#E8EEF5',
   },
   buttonContainer: {
     gap: 10,
     marginBottom: 30,
   },
   saveButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#6BA3D4',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -200,13 +203,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   cancelButton: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#495A73',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#666',
+    color: '#A0AEC0',
     fontSize: 16,
   },
 });
