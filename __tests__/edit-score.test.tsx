@@ -289,4 +289,34 @@ describe('EditScore', () => {
       expect(queryByTestId('table-input')).toBeFalsy();
     });
   });
+
+  it('in edit mode, tapping existing table name activates input', async () => {
+    const { storage } = require('@/services/storage');
+    storage.getScoreById.mockResolvedValue({
+      id: '123',
+      tableName: 'Medieval Madness',
+      score: 150000,
+      date: new Date().toISOString(),
+    });
+
+    storage.getTables.mockResolvedValue([
+      { id: '1', name: 'Medieval Madness' },
+    ]);
+
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      scoreId: '123',
+    });
+
+    const { getByTestId, queryByTestId } = render(<EditScore />);
+
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(queryByTestId('table-field')).toBeTruthy();
+    });
+
+    const tableField = getByTestId('table-field');
+    fireEvent.press(tableField);
+
+    expect(queryByTestId('table-input')).toBeTruthy();
+  });
 });
