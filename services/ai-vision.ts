@@ -1,7 +1,7 @@
 // AI Vision service for extracting table name and score from photos
 // This will use Claude API or OpenAI Vision API
 import Anthropic from '@anthropic-ai/sdk';
-import * as FileSystem from 'expo-file-system';
+import { readAsStringAsync } from 'expo-file-system/legacy';
 import * as ImageManipulator from 'expo-image-manipulator';
 import Constants from 'expo-constants';
 
@@ -46,7 +46,7 @@ export const aiVision = {
       console.log('[AI Vision] Image converted to JPEG:', manipResult.uri);
 
       // Read photo as base64
-      const base64 = await FileSystem.readAsStringAsync(manipResult.uri, {
+      const base64 = await readAsStringAsync(manipResult.uri, {
         encoding: 'base64',
       });
 
