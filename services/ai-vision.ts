@@ -47,7 +47,7 @@ export const aiVision = {
 
       // Read photo as base64
       const base64 = await FileSystem.readAsStringAsync(manipResult.uri, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: 'base64',
       });
 
       // Debug: Check base64 encoding
