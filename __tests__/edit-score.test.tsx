@@ -14,6 +14,7 @@ jest.mock('@/services/storage', () => ({
     updateScore: jest.fn().mockResolvedValue(undefined),
     deleteScore: jest.fn().mockResolvedValue(undefined),
     getScoreById: jest.fn(),
+    getTables: jest.fn().mockResolvedValue([]),
   },
 }));
 
@@ -202,5 +203,90 @@ describe('EditScore', () => {
     const buttonContainer = getByTestId('button-container');
 
     expect(buttonContainer.props.style.flexDirection).toBe('row');
+  });
+
+  it('tapping table field with Unknown activates text input', async () => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Unknown',
+      photoUri: 'file:///test.jpg',
+    });
+
+    const { getByTestId, queryByTestId } = render(<EditScore />);
+    const tableField = getByTestId('table-field');
+
+    fireEvent.press(tableField);
+
+    expect(queryByTestId('table-input')).toBeTruthy();
+  });
+
+  it('typing in table field filters suggestions', async () => {
+    const { storage } = require('@/services/storage');
+    storage.getTables.mockResolvedValue([
+      { id: '1', name: 'Medieval Madness' },
+      { id: '2', name: 'Attack from Mars' },
+    ]);
+
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Unknown',
+      photoUri: 'file:///test.jpg',
+    });
+
+    const { getByTestId, queryAllByTestId } = render(<EditScore />);
+
+    // Wait for tables to load
+    await waitFor(() => {
+      expect(storage.getTables).toHaveBeenCalled();
+    });
+
+    // Activate input
+    const tableField = getByTestId('table-field');
+    fireEvent.press(tableField);
+
+    const tableInput = getByTestId('table-input');
+    fireEvent.changeText(tableInput, 'm');
+
+    await waitFor(() => {
+      const suggestions = queryAllByTestId(/suggestion-item-/);
+      expect(suggestions.length).toBe(2); // Both Medieval Madness and Attack from Mars contain 'm'
+    });
+  });
+
+  it('tapping suggestion confirms selection and closes input', async () => {
+    const { storage } = require('@/services/storage');
+    storage.getTables.mockResolvedValue([
+      { id: '1', name: 'Medieval Madness' },
+    ]);
+
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Unknown',
+      photoUri: 'file:///test.jpg',
+    });
+
+    const { getByTestId, queryByTestId } = render(<EditScore />);
+
+    // Wait for tables to load
+    await waitFor(() => {
+      expect(storage.getTables).toHaveBeenCalled();
+    });
+
+    const tableField = getByTestId('table-field');
+    fireEvent.press(tableField);
+
+    const tableInput = getByTestId('table-input');
+    fireEvent.changeText(tableInput, 'med');
+
+    await waitFor(() => {
+      expect(getByTestId('suggestion-item-0')).toBeTruthy();
+    });
+
+    const suggestion = getByTestId('suggestion-item-0');
+    fireEvent.press(suggestion);
+
+    await waitFor(() => {
+      expect(queryByTestId('table-input')).toBeFalsy();
+    });
   });
 });
