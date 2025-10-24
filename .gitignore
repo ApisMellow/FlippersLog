@@ -20,6 +20,9 @@ web-build/
 .env*.local
 .env
 
+# Config files with embedded secrets
+app.config.js
+
 # typescript
 *.tsbuildinfo
 

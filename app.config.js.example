@@ -9,7 +9,10 @@ export default {
     icon: './assets/icon.png',
     userInterfaceStyle: 'automatic',
     extra: {
-      anthropicApiKey: process.env.ANTHROPIC_API_KEY
+      anthropicApiKey: 'YOUR_ANTHROPIC_API_KEY_HERE',
+      eas: {
+        projectId: "781dc03a-1c1b-4f0d-bf6a-9f9f12100cf6"
+      }
     },
     splash: {
       image: './assets/splash.png',
@@ -24,7 +27,8 @@ export default {
       bundleIdentifier: 'com.flipperslog.app',
       infoPlist: {
         NSCameraUsageDescription: 'This app needs camera access to scan pinball scores.',
-        NSPhotoLibraryUsageDescription: 'This app needs photo library access to analyze existing pinball score photos.'
+        NSPhotoLibraryUsageDescription: 'This app needs photo library access to analyze existing pinball score photos.',
+        ITSAppUsesNonExemptEncryption: false
       }
     },
     android: {
@@ -40,6 +44,7 @@ export default {
     },
     plugins: [
       'expo-router',
+      'expo-font',
       [
         'expo-camera',
         {
