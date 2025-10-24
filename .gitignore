@@ -28,3 +28,9 @@ app.config.js
 
 # Git worktrees
 .worktrees/
+
+# Claude Code local configuration
+.claude/
+
+# Claude Code generated logs
+skills-used.txt
