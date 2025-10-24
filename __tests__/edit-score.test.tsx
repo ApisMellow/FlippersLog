@@ -119,6 +119,7 @@ describe('EditScore', () => {
     await waitFor(() => {
       expect(storage.updateScore).toHaveBeenCalledWith('score-123', {
         score: 2000000,
+        tableName: 'Test Table',
       });
       expect(mockRouter.push).toHaveBeenCalledWith('/');
     });
@@ -318,5 +319,50 @@ describe('EditScore', () => {
     fireEvent.press(tableField);
 
     expect(queryByTestId('table-input')).toBeTruthy();
+  });
+
+  it('save fails with alert if table name is empty', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert');
+
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '',
+      detectedTableName: '',
+    });
+
+    const { getByTestId } = render(<EditScore />);
+    const scoreInput = getByTestId('score-input');
+    const saveButton = getByTestId('save-button');
+
+    fireEvent.changeText(scoreInput, '100000');
+    fireEvent.press(saveButton);
+
+    expect(alertSpy).toHaveBeenCalledWith('Error', expect.stringContaining('Table name'));
+  });
+
+  it('save succeeds with both table and score provided', async () => {
+    const { storage } = require('@/services/storage');
+    const addScoreSpy = jest
+      .spyOn(storage, 'addScore')
+      .mockResolvedValue(undefined);
+
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Medieval Madness',
+    });
+
+    const { getByTestId } = render(<EditScore />);
+
+    const saveButton = getByTestId('save-button');
+    fireEvent.press(saveButton);
+
+    await waitFor(() => {
+      expect(addScoreSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tableName: 'Medieval Madness',
+          score: 100000,
+        })
+      );
+      expect(mockRouter.push).toHaveBeenCalledWith('/');
+    });
   });
 });

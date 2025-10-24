@@ -56,18 +56,28 @@ export default function EditScore() {
   const handleSave = async () => {
     const scoreValue = parseInt(score, 10);
 
+    // Validate score
     if (!scoreValue || scoreValue <= 0) {
       Alert.alert('Error', 'Score must be greater than 0');
       return;
     }
 
+    // Validate table name
+    if (!tableName || tableName.trim() === '') {
+      Alert.alert('Error', 'Table name is required');
+      return;
+    }
+
     try {
       if (isEditMode) {
-        await storage.updateScore(params.scoreId!, { score: scoreValue });
+        await storage.updateScore(params.scoreId!, {
+          score: scoreValue,
+          tableName: tableName.trim(),
+        });
       } else {
         await storage.addScore({
           score: scoreValue,
-          tableName: tableName || 'Unknown Table',
+          tableName: tableName.trim(),
           date: new Date().toISOString(),
           photoUri,
         });
@@ -177,11 +187,12 @@ export default function EditScore() {
           onChangeText={setScore}
           keyboardType="numeric"
           placeholder="Enter score"
+          testID="score-input"
         />
       </View>
 
       <View style={styles.buttonContainer} testID="button-container">
-        <Pressable style={styles.saveButton} onPress={handleSave}>
+        <Pressable style={styles.saveButton} onPress={handleSave} testID="save-button">
           <Text style={styles.saveButtonText}>Save</Text>
         </Pressable>
 
