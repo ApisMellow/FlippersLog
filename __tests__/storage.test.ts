@@ -233,6 +233,86 @@ describe('Storage Service', () => {
     });
   });
 
+  describe('updateScore with tableName changes', () => {
+    beforeEach(async () => {
+      await storage.clearAll();
+    });
+
+    test('updateScore with new tableName creates new table and removes old one if orphaned', async () => {
+      // Setup: Create table "Medieval Madness" with one score
+      await storage.addScore({
+        score: 100000,
+        tableName: 'Medieval Madness',
+        date: new Date().toISOString(),
+      });
+
+      const scores = await storage.getScores();
+      const scoreId = scores[0].id;
+
+      // Update score to different table
+      await storage.updateScore(scoreId, { tableName: 'Attack from Mars' });
+
+      // Verify results
+      const updatedScores = await storage.getScores();
+      const tables = await storage.getTables();
+
+      expect(updatedScores[0].tableName).toBe('Attack from Mars');
+      expect(tables.map(t => t.name)).not.toContain('Medieval Madness'); // Orphaned table removed
+      expect(tables.map(t => t.name)).toContain('Attack from Mars'); // New table created
+    });
+
+    test('updateScore preserves old table if other scores reference it', async () => {
+      // Setup: Create two scores for "Medieval Madness"
+      await storage.addScore({
+        score: 100000,
+        tableName: 'Medieval Madness',
+        date: new Date().toISOString(),
+      });
+
+      await storage.addScore({
+        score: 150000,
+        tableName: 'Medieval Madness',
+        date: new Date().toISOString(),
+      });
+
+      const scores = await storage.getScores();
+      const firstScoreId = scores[0].id;
+
+      // Update only first score to different table
+      await storage.updateScore(firstScoreId, { tableName: 'Attack from Mars' });
+
+      // Verify results
+      const tables = await storage.getTables();
+      expect(tables.map(t => t.name)).toContain('Medieval Madness'); // Still has second score
+      expect(tables.map(t => t.name)).toContain('Attack from Mars');
+      expect(tables.length).toBe(2);
+    });
+
+    test('updateScore can update score value without changing table', async () => {
+      // Setup: Create score
+      await storage.addScore({
+        score: 100000,
+        tableName: 'Medieval Madness',
+        date: new Date().toISOString(),
+      });
+
+      const scores = await storage.getScores();
+      const scoreId = scores[0].id;
+
+      // Update score value only
+      await storage.updateScore(scoreId, { score: 250000 });
+
+      // Verify
+      const updatedScores = await storage.getScores();
+      const tables = await storage.getTables();
+
+      expect(updatedScores[0].score).toBe(250000);
+      expect(updatedScores[0].tableName).toBe('Medieval Madness'); // Table unchanged
+      expect(tables.length).toBe(1);
+      expect(tables[0].name).toBe('Medieval Madness');
+    });
+  });
+
   // Legacy tests for backward compatibility with tableId model
   describe('deleteScore (legacy tableId)', () => {
     it('should delete a score by id', async () => {
