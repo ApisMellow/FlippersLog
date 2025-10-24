@@ -20,6 +20,42 @@ function getMediaType(uri: string): 'image/jpeg' {
   return 'image/jpeg';
 }
 
+// Helper function to extract JSON from Claude response
+// Handles responses with explanatory text, markdown code blocks, and backticks
+export function extractJsonFromResponse(response: string): { score: number; tableName?: string | null } {
+  if (!response || response.trim().length === 0) {
+    throw new Error('Empty response');
+  }
+
+  let jsonText = response.trim();
+
+  // Remove markdown code blocks: ```json ... ``` or ``` ... ```
+  jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+
+  // Remove single backticks: `...`
+  jsonText = jsonText.replace(/^`+|`+$/g, '');
+
+  jsonText = jsonText.trim();
+
+  // If response contains text before JSON, extract just the JSON object
+  // Look for { at the start and } at the end
+  const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error('No JSON object found in response');
+  }
+
+  jsonText = jsonMatch[0];
+
+  const parsed = JSON.parse(jsonText);
+
+  // Validate score exists and is a number
+  if (typeof parsed.score !== 'number') {
+    throw new Error('No valid score in response');
+  }
+
+  return parsed;
+}
+
 export const aiVision = {
   // Analyze a photo and extract pinball table info and score
   async analyzePhoto(photoUri: string): Promise<VisionResult> {
@@ -113,26 +149,10 @@ Rules:
         throw new Error('No text content in response');
       }
 
-      // Extract JSON from response (handle markdown code blocks and backticks)
-      let jsonText = textContent.text.trim();
-
       // Add this line to log raw response for debugging
-      console.log('[AI Vision] Raw Claude response:', jsonText);
+      console.log('[AI Vision] Raw Claude response:', textContent.text);
 
-      // Remove markdown code blocks: ```json ... ``` or ``` ... ```
-      jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
-
-      // Remove single backticks: `...`
-      jsonText = jsonText.replace(/^`+|`+$/g, '');
-
-      jsonText = jsonText.trim();
-
-      const parsed = JSON.parse(jsonText);
-
-      // Validate score exists
-      if (typeof parsed.score !== 'number') {
-        throw new Error('No valid score in response');
-      }
+      const parsed = extractJsonFromResponse(textContent.text);
 
       console.log('[AI Vision] Successfully extracted:', { score: parsed.score, tableName: parsed.tableName });
 
