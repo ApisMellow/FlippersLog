@@ -109,7 +109,7 @@ export default function ManualEntryScreen() {
       <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
         <View style={styles.content}>
           <View style={styles.iconContainer}>
-            <Ionicons name="game-controller" size={48} color="#007AFF" />
+            <Ionicons name="game-controller" size={48} color="#6BA3D4" />
           </View>
 
           <View style={styles.form}>
@@ -149,7 +149,7 @@ export default function ManualEntryScreen() {
                     setManufacturer('');
                   }}
                 >
-                  <Ionicons name="close-circle" size={20} color="#999" />
+                  <Ionicons name="close-circle" size={20} color="#A0AEC0" />
                 </TouchableOpacity>
               )}
             </View>
@@ -204,7 +204,7 @@ export default function ManualEntryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#2E3E52',
   },
   scrollView: {
     flex: 1,
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#E8EEF5',
   },
   sampleTablesContainer: {
     flexDirection: 'row',
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sampleTableChip: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#6BA3D4',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
@@ -250,13 +250,13 @@ const styles = StyleSheet.create({
     top: 40,
   },
   input: {
-    backgroundColor: 'white',
+    backgroundColor: '#3B4F6B',
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#495A73',
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#333',
+    color: '#E8EEF5',
   },
   scoreInput: {
     fontSize: 24,
@@ -265,11 +265,11 @@ const styles = StyleSheet.create({
   },
   scorePreview: {
     fontSize: 14,
-    color: '#666',
+    color: '#A0AEC0',
     marginTop: 4,
   },
   saveButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#6BA3D4',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   saveButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#495A73',
   },
   saveButtonText: {
     color: 'white',
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 14,
-    color: '#999',
+    color: '#A0AEC0',
     textAlign: 'center',
     marginTop: 12,
   },

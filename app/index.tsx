@@ -65,10 +65,10 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="home-container">
       {tables.length === 0 ? (
         <View style={styles.emptyState}>
-          <Ionicons name="game-controller-outline" size={64} color="#999" />
+          <Ionicons name="game-controller-outline" size={64} color="#A0AEC0" />
           <Text style={styles.emptyText}>No scores yet!</Text>
           <Text style={styles.emptySubtext}>Tap the + button to add your first score</Text>
         </View>
@@ -80,17 +80,17 @@ export default function HomeScreen() {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
-          renderItem={({ item }) => (
-            <View style={styles.tableCard}>
+          renderItem={({ item, index }) => (
+            <View style={styles.tableCard} testID={`score-card-${index}`}>
               <View style={styles.tableHeader}>
-                <Text style={styles.tableName}>{item.name}</Text>
+                <Text style={styles.tableName} testID={`table-name-${index}`}>{item.name}</Text>
                 {item.manufacturer && (
                   <Text style={styles.manufacturer}>{item.manufacturer}</Text>
                 )}
               </View>
 
               <View style={styles.scoresContainer}>
-                {item.topScores.map((score, index) => (
+                {item.topScores.map((score, scoreIndex) => (
                   <Swipeable
                     key={score.id}
                     renderRightActions={() => renderRightActions(score.id)}
@@ -99,15 +99,15 @@ export default function HomeScreen() {
                       <View style={styles.scoreRank}>
                         <Text style={[
                           styles.rankText,
-                          index === 0 && styles.rankTextFirst
+                          scoreIndex === 0 && styles.rankTextFirst
                         ]}>
-                          #{index + 1}
+                          #{scoreIndex + 1}
                         </Text>
                       </View>
                       <View style={styles.scoreDetails}>
                         <Text style={[
                           styles.scoreText,
-                          index === 0 && styles.scoreTextFirst
+                          scoreIndex === 0 && styles.scoreTextFirst
                         ]}>
                           {formatScore(score.score)}
                         </Text>
@@ -115,23 +115,13 @@ export default function HomeScreen() {
                       </View>
                       <View style={styles.scoreActions}>
                         <Pressable
-                          testID={`edit-score-${score.id}`}
+                          testID={`edit-icon-${index}`}
                           onPress={() => handleEditScore(score.id)}
                           style={styles.actionButton}
                         >
-                          <Text style={styles.actionButtonText}>Edit</Text>
-                        </Pressable>
-                        <Pressable
-                          testID={`delete-score-${score.id}`}
-                          onPress={() => handleDeleteScore(score.id)}
-                          style={styles.actionButton}
-                        >
-                          <Text style={styles.actionButtonText}>Delete</Text>
+                          <Ionicons name="pencil" size={20} color="#6BA3D4" />
                         </Pressable>
                       </View>
-                      {score.photoUri && (
-                        <Ionicons name="camera" size={16} color="#999" style={styles.cameraIcon} />
-                      )}
                     </View>
                   </Swipeable>
                 ))}
@@ -163,7 +153,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#2E3E52',
   },
   emptyState: {
     flex: 1,
@@ -174,21 +164,23 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#333',
+    color: '#E8EEF5',
     marginTop: 16,
   },
   emptySubtext: {
     fontSize: 16,
-    color: '#999',
+    color: '#A0AEC0',
     marginTop: 8,
     textAlign: 'center',
   },
   tableCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#3B4F6B',
     marginHorizontal: 16,
     marginTop: 16,
     borderRadius: 12,
     padding: 16,
+    borderWidth: 1,
+    borderColor: '#495A73',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -198,17 +190,17 @@ const styles = StyleSheet.create({
   tableHeader: {
     marginBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#495A73',
     paddingBottom: 8,
   },
   tableName: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: '#E8EEF5',
   },
   manufacturer: {
     fontSize: 14,
-    color: '#666',
+    color: '#A0AEC0',
     marginTop: 4,
   },
   scoresContainer: {
@@ -218,7 +210,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
-    backgroundColor: 'white',
+    backgroundColor: '#3B4F6B',
   },
   scoreRank: {
     width: 40,
@@ -226,7 +218,7 @@ const styles = StyleSheet.create({
   rankText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#999',
+    color: '#A0AEC0',
   },
   rankTextFirst: {
     fontSize: 18,
@@ -238,15 +230,15 @@ const styles = StyleSheet.create({
   scoreText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: '#E8EEF5',
   },
   scoreTextFirst: {
     fontSize: 20,
-    color: '#007AFF',
+    color: '#6BA3D4',
   },
   dateText: {
     fontSize: 12,
-    color: '#999',
+    color: '#A0AEC0',
     marginTop: 2,
   },
   scoreActions: {
@@ -255,12 +247,12 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     padding: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#495A73',
     borderRadius: 4,
   },
   actionButtonText: {
     fontSize: 12,
-    color: '#333',
+    color: '#6BA3D4',
   },
   cameraIcon: {
     marginLeft: 8,
@@ -276,7 +268,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#6BA3D4',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -289,7 +281,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#5AC8FA',
+    backgroundColor: '#495A73',
   },
   swipeDeleteButton: {
     backgroundColor: '#FF3B30',
