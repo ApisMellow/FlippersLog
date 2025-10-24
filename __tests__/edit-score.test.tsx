@@ -14,6 +14,7 @@ jest.mock('@/services/storage', () => ({
     updateScore: jest.fn().mockResolvedValue(undefined),
     deleteScore: jest.fn().mockResolvedValue(undefined),
     getScoreById: jest.fn(),
+    getTables: jest.fn().mockResolvedValue([]),
   },
 }));
 
@@ -118,6 +119,7 @@ describe('EditScore', () => {
     await waitFor(() => {
       expect(storage.updateScore).toHaveBeenCalledWith('score-123', {
         score: 2000000,
+        tableName: 'Test Table',
       });
       expect(mockRouter.push).toHaveBeenCalledWith('/');
     });
@@ -175,5 +177,192 @@ describe('EditScore', () => {
     const { queryByText } = render(<EditScore />);
 
     expect(queryByText('Delete')).toBeNull();
+  });
+
+  it('photo takes up approximately 60% of screen height', () => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Medieval Madness',
+      photoUri: 'file:///test.jpg',
+    });
+
+    const { getByTestId } = render(<EditScore />);
+    const photo = getByTestId('photo-image');
+
+    // 60% of typical screen (~350px from 600px total)
+    expect(photo.props.style.height).toBeGreaterThanOrEqual(300);
+  });
+
+  it('buttons are side-by-side (equal width) at bottom', () => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Medieval Madness',
+      photoUri: 'file:///test.jpg',
+    });
+
+    const { getByTestId } = render(<EditScore />);
+    const buttonContainer = getByTestId('button-container');
+
+    expect(buttonContainer.props.style.flexDirection).toBe('row');
+  });
+
+  it('tapping table field with Unknown activates text input', async () => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Unknown',
+      photoUri: 'file:///test.jpg',
+    });
+
+    const { getByTestId, queryByTestId } = render(<EditScore />);
+    const tableField = getByTestId('table-field');
+
+    fireEvent.press(tableField);
+
+    expect(queryByTestId('table-input')).toBeTruthy();
+  });
+
+  it('typing in table field filters suggestions', async () => {
+    const { storage } = require('@/services/storage');
+    storage.getTables.mockResolvedValue([
+      { id: '1', name: 'Medieval Madness' },
+      { id: '2', name: 'Attack from Mars' },
+    ]);
+
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Unknown',
+      photoUri: 'file:///test.jpg',
+    });
+
+    const { getByTestId, queryAllByTestId } = render(<EditScore />);
+
+    // Wait for tables to load
+    await waitFor(() => {
+      expect(storage.getTables).toHaveBeenCalled();
+    });
+
+    // Activate input
+    const tableField = getByTestId('table-field');
+    fireEvent.press(tableField);
+
+    const tableInput = getByTestId('table-input');
+    fireEvent.changeText(tableInput, 'm');
+
+    await waitFor(() => {
+      const suggestions = queryAllByTestId(/suggestion-item-/);
+      expect(suggestions.length).toBe(2); // Both Medieval Madness and Attack from Mars contain 'm'
+    });
+  });
+
+  it('tapping suggestion confirms selection and closes input', async () => {
+    const { storage } = require('@/services/storage');
+    storage.getTables.mockResolvedValue([
+      { id: '1', name: 'Medieval Madness' },
+    ]);
+
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Unknown',
+      photoUri: 'file:///test.jpg',
+    });
+
+    const { getByTestId, queryByTestId } = render(<EditScore />);
+
+    // Wait for tables to load
+    await waitFor(() => {
+      expect(storage.getTables).toHaveBeenCalled();
+    });
+
+    const tableField = getByTestId('table-field');
+    fireEvent.press(tableField);
+
+    const tableInput = getByTestId('table-input');
+    fireEvent.changeText(tableInput, 'med');
+
+    await waitFor(() => {
+      expect(getByTestId('suggestion-item-0')).toBeTruthy();
+    });
+
+    const suggestion = getByTestId('suggestion-item-0');
+    fireEvent.press(suggestion);
+
+    await waitFor(() => {
+      expect(queryByTestId('table-input')).toBeFalsy();
+    });
+  });
+
+  it('in edit mode, tapping existing table name activates input', async () => {
+    const { storage } = require('@/services/storage');
+    storage.getScoreById.mockResolvedValue({
+      id: '123',
+      tableName: 'Medieval Madness',
+      score: 150000,
+      date: new Date().toISOString(),
+    });
+
+    storage.getTables.mockResolvedValue([
+      { id: '1', name: 'Medieval Madness' },
+    ]);
+
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      scoreId: '123',
+    });
+
+    const { getByTestId, queryByTestId } = render(<EditScore />);
+
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(queryByTestId('table-field')).toBeTruthy();
+    });
+
+    const tableField = getByTestId('table-field');
+    fireEvent.press(tableField);
+
+    expect(queryByTestId('table-input')).toBeTruthy();
+  });
+
+  it('save fails with alert if table name is empty', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert');
+
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '',
+      detectedTableName: '',
+    });
+
+    const { getByTestId } = render(<EditScore />);
+    const scoreInput = getByTestId('score-input');
+    const saveButton = getByTestId('save-button');
+
+    fireEvent.changeText(scoreInput, '100000');
+    fireEvent.press(saveButton);
+
+    expect(alertSpy).toHaveBeenCalledWith('Error', expect.stringContaining('Table name'));
+  });
+
+  it('save succeeds with both table and score provided', async () => {
+    const { storage } = require('@/services/storage');
+    const addScoreSpy = jest
+      .spyOn(storage, 'addScore')
+      .mockResolvedValue(undefined);
+
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Medieval Madness',
+    });
+
+    const { getByTestId } = render(<EditScore />);
+
+    const saveButton = getByTestId('save-button');
+    fireEvent.press(saveButton);
+
+    await waitFor(() => {
+      expect(addScoreSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tableName: 'Medieval Madness',
+          score: 100000,
+        })
+      );
+      expect(mockRouter.push).toHaveBeenCalledWith('/');
+    });
   });
 });
