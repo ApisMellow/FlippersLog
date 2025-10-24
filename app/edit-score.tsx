@@ -88,17 +88,6 @@ export default function EditScore() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!params.scoreId) return;
-
-    try {
-      await storage.deleteScore(params.scoreId);
-      router.push('/');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to delete score');
-    }
-  };
-
   const handleCancel = () => {
     router.back();
   };
@@ -135,8 +124,9 @@ export default function EditScore() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{isEditMode ? 'Edit Score' : 'Correct Score'}</Text>
+    <ScrollView style={styles.scrollContainer}>
+      <View style={styles.container} testID="container">
+        <Text style={styles.title}>{isEditMode ? 'Edit Score' : 'Correct Score'}</Text>
 
       {photoUri && (
         <Image
@@ -192,39 +182,39 @@ export default function EditScore() {
       </View>
 
       <View style={styles.buttonContainer} testID="button-container">
-        <Pressable style={styles.saveButton} onPress={handleSave} testID="save-button">
+        <Pressable style={[styles.button, styles.saveButton]} onPress={handleSave} testID="save-button">
           <Text style={styles.saveButtonText}>Save</Text>
         </Pressable>
 
-        {isEditMode && (
-          <Pressable style={styles.deleteButton} onPress={handleDelete}>
-            <Text style={styles.deleteButtonText}>Delete</Text>
-          </Pressable>
-        )}
-
-        <Pressable style={styles.cancelButton} onPress={handleCancel}>
+        <Pressable style={[styles.button, styles.cancelButton]} onPress={handleCancel}>
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </Pressable>
       </View>
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flex: 1,
+    backgroundColor: '#2E3E52',
+  },
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#2E3E52',
+    minHeight: '100%',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: '#E8EEF5',
   },
   photo: {
     width: '100%',
     height: 350,
-    alignSelf: 'center',
     borderRadius: 10,
     marginBottom: 20,
   },
@@ -233,70 +223,64 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: '#666',
+    color: '#A0AEC0',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#495A73',
     borderRadius: 8,
     padding: 12,
-    fontSize: 24,
+    fontSize: 16,
     marginBottom: 15,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  saveButton: {
-    flex: 1,
-    backgroundColor: '#4CAF50',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  deleteButton: {
-    flex: 1,
-    backgroundColor: '#f44336',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  deleteButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  cancelButton: {
-    flex: 1,
-    backgroundColor: '#e0e0e0',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: '#666',
-    fontSize: 16,
+    backgroundColor: '#3B4F6B',
+    color: '#E8EEF5',
   },
   suggestionsContainer: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#495A73',
     borderRadius: 8,
     marginBottom: 15,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#3B4F6B',
   },
   suggestionItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#495A73',
   },
   suggestionText: {
     fontSize: 14,
-    color: '#333',
+    color: '#E8EEF5',
+  },
+  spacer: {
+    flex: 1,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  button: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  saveButton: {
+    backgroundColor: '#6BA3D4',
+  },
+  saveButtonText: {
+    color: '#2E3E52',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  cancelButton: {
+    backgroundColor: '#495A73',
+  },
+  cancelButtonText: {
+    color: '#E8EEF5',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

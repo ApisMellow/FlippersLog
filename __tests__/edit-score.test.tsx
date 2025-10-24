@@ -142,42 +142,6 @@ describe('EditScore', () => {
     });
   });
 
-  it('should delete score when Delete button pressed', async () => {
-    const { storage } = require('@/services/storage');
-    storage.getScoreById.mockResolvedValue({
-      id: 'score-123',
-      score: 1000000,
-      tableName: 'Test Table',
-      date: '2024-10-10',
-    });
-
-    (useLocalSearchParams as jest.Mock).mockReturnValue({
-      scoreId: 'score-123',
-    });
-
-    const { getByText } = render(<EditScore />);
-
-    await waitFor(() => {
-      expect(getByText('Delete')).toBeTruthy();
-    });
-
-    fireEvent.press(getByText('Delete'));
-
-    await waitFor(() => {
-      expect(storage.deleteScore).toHaveBeenCalledWith('score-123');
-      expect(mockRouter.push).toHaveBeenCalledWith('/');
-    });
-  });
-
-  it('should not show Delete button in correction mode', () => {
-    (useLocalSearchParams as jest.Mock).mockReturnValue({
-      detectedScore: '1000',
-    });
-
-    const { queryByText } = render(<EditScore />);
-
-    expect(queryByText('Delete')).toBeNull();
-  });
 
   it('photo takes up approximately 60% of screen height', () => {
     (useLocalSearchParams as jest.Mock).mockReturnValue({
@@ -364,5 +328,62 @@ describe('EditScore', () => {
       );
       expect(mockRouter.push).toHaveBeenCalledWith('/');
     });
+  });
+
+  it('edit screen has dark mode background color', () => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Medieval Madness',
+    });
+
+    const { getByTestId } = render(<EditScore />);
+    const container = getByTestId('container');
+
+    expect(container.props.style.backgroundColor).toBe('#2E3E52');
+  });
+
+  it('edit screen text input has dark mode colors', () => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Medieval Madness',
+    });
+
+    const { getByTestId } = render(<EditScore />);
+    const input = getByTestId('score-input');
+
+    expect(input.props.style.backgroundColor).toBe('#3B4F6B');
+    expect(input.props.style.color).toBe('#E8EEF5');
+  });
+
+  it('delete button not shown on edit screen', async () => {
+    const { storage } = require('@/services/storage');
+    jest.spyOn(storage, 'getScoreById').mockResolvedValue({
+      id: '123',
+      tableName: 'Medieval Madness',
+      score: 150000,
+      date: new Date().toISOString(),
+    });
+
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      scoreId: '123',
+    });
+
+    const { queryByTestId } = render(<EditScore />);
+
+    await waitFor(() => {
+      expect(queryByTestId('delete-button')).toBeFalsy();
+    });
+  });
+
+  it('save button has dark mode accent color', () => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Medieval Madness',
+    });
+
+    const { getByTestId } = render(<EditScore />);
+    const saveButton = getByTestId('save-button');
+
+    expect(saveButton.props.style[1].backgroundColor).toBe('#6BA3D4');
   });
 });
