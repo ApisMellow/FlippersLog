@@ -5,7 +5,7 @@ import { aiVision } from '@/services/ai-vision';
 jest.mock('expo-constants', () => ({
   expoConfig: {
     extra: {
-      anthropicApiKey: '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',
+      anthropicApiKey: 'sk-ant-api03-YOUR_KEY_HERE',
     },
   },
 }));
@@ -20,7 +20,7 @@ describe('API Key Embedding', () => {
 
   it('should be the correct API key value', () => {
     const apiKey = Constants.expoConfig?.extra?.anthropicApiKey;
-    expect(apiKey).toBe('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');
+    expect(apiKey).toBe('sk-ant-api03-YOUR_KEY_HERE');
   });
 
   it('should use embedded API key when no environment variable is available', async () => {
