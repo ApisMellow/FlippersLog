@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, Alert, Image, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { storage } from '@/services/storage';
 
@@ -97,6 +97,7 @@ export default function EditScore() {
           source={{ uri: photoUri }}
           style={styles.photo}
           resizeMode="cover"
+          testID="photo-image"
         />
       )}
 
@@ -113,7 +114,7 @@ export default function EditScore() {
         />
       </View>
 
-      <View style={styles.buttonContainer}>
+      <View style={styles.buttonContainer} testID="button-container">
         <Pressable style={styles.saveButton} onPress={handleSave}>
           <Text style={styles.saveButtonText}>Save</Text>
         </Pressable>
@@ -144,8 +145,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   photo: {
-    width: 150,
-    height: 150,
+    width: '100%',
+    height: 350,
     alignSelf: 'center',
     borderRadius: 10,
     marginBottom: 20,
@@ -167,9 +168,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   buttonContainer: {
+    flexDirection: 'row',
     gap: 10,
   },
   saveButton: {
+    flex: 1,
     backgroundColor: '#4CAF50',
     padding: 16,
     borderRadius: 8,
@@ -181,6 +184,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   deleteButton: {
+    flex: 1,
     backgroundColor: '#f44336',
     padding: 16,
     borderRadius: 8,
@@ -192,6 +196,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   cancelButton: {
+    flex: 1,
     backgroundColor: '#e0e0e0',
     padding: 16,
     borderRadius: 8,

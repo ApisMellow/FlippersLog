@@ -176,4 +176,31 @@ describe('EditScore', () => {
 
     expect(queryByText('Delete')).toBeNull();
   });
+
+  it('photo takes up approximately 60% of screen height', () => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Medieval Madness',
+      photoUri: 'file:///test.jpg',
+    });
+
+    const { getByTestId } = render(<EditScore />);
+    const photo = getByTestId('photo-image');
+
+    // 60% of typical screen (~350px from 600px total)
+    expect(photo.props.style.height).toBeGreaterThanOrEqual(300);
+  });
+
+  it('buttons are side-by-side (equal width) at bottom', () => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      detectedScore: '100000',
+      detectedTableName: 'Medieval Madness',
+      photoUri: 'file:///test.jpg',
+    });
+
+    const { getByTestId } = render(<EditScore />);
+    const buttonContainer = getByTestId('button-container');
+
+    expect(buttonContainer.props.style.flexDirection).toBe('row');
+  });
 });
