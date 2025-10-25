@@ -86,15 +86,10 @@ export default function ManualEntryScreen() {
 
     setSaving(true);
     try {
-      // Save or get the table
-      const table = await storage.saveTable({
-        name: tableName.trim(),
-      });
-
-      // Save the score
-      await storage.saveScore({
-        tableId: table.id,
+      // Save the score with tableName (new preferred method)
+      await storage.addScore({
         score: numericScore,
+        tableName: tableName.trim(),
         date: new Date().toISOString(),
       });
 

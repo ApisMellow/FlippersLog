@@ -22,11 +22,7 @@ describe('Manual Entry - No Manufacturer Field', () => {
     });
     mockStorage.getTables.mockResolvedValue([]);
     mockStorage.getSampleTables.mockResolvedValue([]);
-    mockStorage.saveTable.mockResolvedValue({
-      id: 'table-1',
-      name: 'Test Table',
-    });
-    mockStorage.saveScore.mockResolvedValue(undefined);
+    mockStorage.addScore.mockResolvedValue(undefined);
   });
 
   it('should not have manufacturer input field', () => {
@@ -50,14 +46,15 @@ describe('Manual Entry - No Manufacturer Field', () => {
     fireEvent.press(saveButton);
 
     await waitFor(() => {
-      // saveTable should be called with only name, no manufacturer
-      expect(mockStorage.saveTable).toHaveBeenCalledWith(
+      // addScore should be called with tableName, score, date - but NOT manufacturer
+      expect(mockStorage.addScore).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Medieval Madness',
+          tableName: 'Medieval Madness',
+          score: 1000000,
         })
       );
       // Verify manufacturer is NOT in the call
-      expect(mockStorage.saveTable).not.toHaveBeenCalledWith(
+      expect(mockStorage.addScore).not.toHaveBeenCalledWith(
         expect.objectContaining({
           manufacturer: expect.anything(),
         })
