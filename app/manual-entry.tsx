@@ -187,11 +187,6 @@ export default function ManualEntryScreen() {
                 onSubmitEditing={handleSave}
                 returnKeyType="done"
               />
-              {score && (
-                <Text style={styles.scorePreview}>
-                  {parseInt(score.replace(/,/g, ''), 10).toLocaleString()}
-                </Text>
-              )}
             </View>
           </View>
         </View>
@@ -266,10 +261,5 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
-  },
-  scorePreview: {
-    fontSize: 14,
-    color: '#A0AEC0',
-    marginTop: 4,
   },
 });
