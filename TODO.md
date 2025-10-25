@@ -11,7 +11,7 @@
 ### Medium Priority
 - [x] get rid of the 'delete' button since we have swipe-to-delete
 - [ ] EM wheel-style score edit
-- [x] quick select on table name at detection confirm screen
+- [ ] quick select on table name at detection confirm screen (regression)
 
 ### Low Priority / Nice to Have
 - [ ] investigate the "card" stacking part of the UI

@@ -34,3 +34,6 @@ app.config.js
 
 # Claude Code generated logs
 skills-used.txt
+
+# Bug fix documents
+BUGFIX.md
