@@ -124,7 +124,11 @@ export default function EditScore() {
   }
 
   return (
-    <ScrollView style={styles.scrollContainer}>
+    <ScrollView
+      style={styles.scrollContainer}
+      contentContainerStyle={styles.scrollContentContainer}
+      keyboardDismissMode="on-drag"
+    >
       <View style={styles.container} testID="container">
         <Text style={styles.title}>{isEditMode ? 'Edit Score' : 'Correct Score'}</Text>
 
@@ -201,6 +205,9 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     backgroundColor: '#2E3E52',
+  },
+  scrollContentContainer: {
+    paddingBottom: 100,
   },
   container: {
     flex: 1,
