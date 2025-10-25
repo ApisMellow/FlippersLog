@@ -42,8 +42,8 @@ describe('Manual Entry - No Manufacturer Field', () => {
     const scoreInput = screen.getByPlaceholderText('0');
     fireEvent.changeText(scoreInput, '1000000');
 
-    const saveButton = screen.getByText('Save Score');
-    fireEvent.press(saveButton);
+    // Simulate pressing return key on the score field
+    fireEvent(scoreInput, 'submitEditing');
 
     await waitFor(() => {
       // addScore should be called with tableName, score, date - but NOT manufacturer

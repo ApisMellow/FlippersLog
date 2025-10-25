@@ -20,7 +20,6 @@ export default function ManualEntryScreen() {
   const [tableName, setTableName] = useState('');
   const [tableInputValue, setTableInputValue] = useState('');
   const [score, setScore] = useState('');
-  const [saving, setSaving] = useState(false);
   const [sampleTables, setSampleTables] = useState<Table[]>([]);
 
   const loadTablesForQuickSelect = useCallback(async () => {
@@ -97,7 +96,6 @@ export default function ManualEntryScreen() {
       return;
     }
 
-    setSaving(true);
     try {
       // Save the score with tableName (new preferred method)
       await storage.addScore({
@@ -118,12 +116,8 @@ export default function ManualEntryScreen() {
       );
     } catch (error) {
       Alert.alert('Error', 'Failed to save score. Please try again.');
-    } finally {
-      setSaving(false);
     }
   };
-
-  const canSave = tableName.trim() && score.trim() && !saving;
 
   return (
     <KeyboardAvoidingView
@@ -200,16 +194,6 @@ export default function ManualEntryScreen() {
               )}
             </View>
           </View>
-
-          <TouchableOpacity
-            style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}
-            onPress={handleSave}
-            disabled={!canSave}
-          >
-            <Text style={styles.saveButtonText}>
-              {saving ? 'Saving...' : 'Save Score'}
-            </Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -287,25 +271,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#A0AEC0',
     marginTop: 4,
-  },
-  saveButton: {
-    backgroundColor: '#6BA3D4',
-    padding: 18,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#495A73',
-  },
-  saveButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '700',
   },
 });
