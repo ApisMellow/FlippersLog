@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2E3E52',
   },
   scrollContentContainer: {
-    paddingBottom: 100,
+    paddingBottom: 150,
   },
   container: {
     flex: 1,
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   },
   photo: {
     width: '100%',
-    height: 350,
+    height: 200,
     borderRadius: 10,
     marginBottom: 20,
   },
