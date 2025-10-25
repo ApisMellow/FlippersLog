@@ -175,9 +175,11 @@ export default function EditScore() {
           style={styles.input}
           value={score}
           onChangeText={setScore}
-          keyboardType="numeric"
+          keyboardType="number-pad"
           placeholder="Enter score"
           testID="score-input"
+          onSubmitEditing={handleSave}
+          returnKeyType="done"
         />
       </View>
 
