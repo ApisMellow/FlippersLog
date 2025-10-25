@@ -21,7 +21,7 @@ describe('Storage Service', () => {
 
       sampleTables.forEach(table => {
         expect(table.name).toBeTruthy();
-        expect(table.manufacturer).toBeTruthy();
+        expect(table.year).toBeTruthy();
       });
     });
   });

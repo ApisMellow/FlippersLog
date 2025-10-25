@@ -161,19 +161,16 @@ export const storage = {
       {
         id: 'sample-1',
         name: 'Medieval Madness',
-        manufacturer: 'Williams',
         year: 1997,
       },
       {
         id: 'sample-2',
         name: 'Attack from Mars',
-        manufacturer: 'Bally',
         year: 1995,
       },
       {
         id: 'sample-3',
         name: 'The Addams Family',
-        manufacturer: 'Bally',
         year: 1992,
       },
     ];
