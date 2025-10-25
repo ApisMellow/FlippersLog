@@ -18,6 +18,7 @@ import { Table } from '@/types';
 export default function ManualEntryScreen() {
   const router = useRouter();
   const [tableName, setTableName] = useState('');
+  const [tableInputValue, setTableInputValue] = useState('');
   const [score, setScore] = useState('');
   const [saving, setSaving] = useState(false);
   const [sampleTables, setSampleTables] = useState<Table[]>([]);
@@ -61,7 +62,38 @@ export default function ManualEntryScreen() {
 
   const selectTable = (table: Table) => {
     setTableName(table.name);
+    setTableInputValue(table.name);
     setShowSuggestions(false);
+  };
+
+  const handleTableNameInputChange = (text: string) => {
+    setTableInputValue(text);
+    setTableName(text);
+
+    if (text.length === 0) {
+      // No text - show quick select again
+      loadTablesForQuickSelect();
+    } else {
+      // Filter tables by text match
+      const matchingTables = sampleTables.filter(table =>
+        table.name.toLowerCase().includes(text.toLowerCase())
+      );
+
+      if (matchingTables.length > 0) {
+        // Show filtered matches (could be 1 or more)
+        setSampleTables(matchingTables);
+
+        // If exactly one table matches, autocomplete the input value
+        // but don't require the user to select it
+        if (matchingTables.length === 1) {
+          const fullName = matchingTables[0].name;
+          setTableInputValue(fullName);
+        }
+      } else {
+        // No matches - hide quick select
+        setSampleTables([]);
+      }
+    }
   };
 
   const formatScoreInput = (text: string) => {
@@ -136,8 +168,8 @@ export default function ManualEntryScreen() {
           </View>
 
           <View style={styles.form}>
-            {/* Sample Tables Quick Select */}
-            {sampleTables.length > 0 && !tableName && (
+            {/* Sample Tables Quick Select / Autocomplete Suggestions */}
+            {sampleTables.length > 0 && (
               <View style={styles.fieldContainer}>
                 <Text style={styles.label}>Quick Select</Text>
                 <View style={styles.sampleTablesContainer}>
@@ -159,8 +191,8 @@ export default function ManualEntryScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="e.g., Medieval Madness"
-                value={tableName}
-                onChangeText={setTableName}
+                value={tableInputValue}
+                onChangeText={handleTableNameInputChange}
                 autoCapitalize="words"
                 autoFocus={!sampleTables.length}
               />
@@ -169,6 +201,8 @@ export default function ManualEntryScreen() {
                   style={styles.clearButton}
                   onPress={() => {
                     setTableName('');
+                    setTableInputValue('');
+                    loadTablesForQuickSelect();
                   }}
                 >
                   <Text style={styles.clearButtonText}>×</Text>
