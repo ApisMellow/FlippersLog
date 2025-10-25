@@ -29,8 +29,16 @@ export default function ManualEntryScreen() {
       const userTables = await storage.getTables();
 
       if (userTables.length > 0) {
-        // Show real user tables
-        setSampleTables(userTables);
+        // Sort by lastUsedDate (most recent first), limit to 7
+        const sortedTables = userTables
+          .sort((a, b) => {
+            const dateA = new Date(a.lastUsedDate || 0).getTime();
+            const dateB = new Date(b.lastUsedDate || 0).getTime();
+            return dateB - dateA; // Most recent first
+          })
+          .slice(0, 7); // Take only first 7
+
+        setSampleTables(sortedTables);
       } else {
         // Fallback: show sample tables for new users with no saved tables
         const samples = await storage.getSampleTables();
