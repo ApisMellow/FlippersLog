@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Pressable, Alert, Image } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { storage } from '@/services/storage';
 import { TableWithScores } from '@/types';
@@ -68,7 +68,10 @@ export default function HomeScreen() {
     <View style={styles.container} testID="home-container">
       {tables.length === 0 ? (
         <View style={styles.emptyState}>
-          <Ionicons name="game-controller-outline" size={64} color="#A0AEC0" />
+          <Image
+            source={require('@/assets/adaptive-icon.png')}
+            style={{ width: 64, height: 64 }}
+          />
           <Text style={styles.emptyText}>No scores yet!</Text>
           <Text style={styles.emptySubtext}>Tap the + button to add your first score</Text>
         </View>

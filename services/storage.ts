@@ -162,10 +162,10 @@ export const storage = {
         })
         .filter(table => table.topScores.length > 0) // Only show tables with scores
         .sort((a, b) => {
-          // Sort by highest score
-          const aMax = a.topScores[0]?.score || 0;
-          const bMax = b.topScores[0]?.score || 0;
-          return bMax - aMax;
+          // Sort by lastUsedDate (most recent first)
+          const dateA = new Date(a.lastUsedDate || 0).getTime();
+          const dateB = new Date(b.lastUsedDate || 0).getTime();
+          return dateB - dateA; // Most recent first (descending)
         });
     } catch (error) {
       console.error('Error loading tables with scores:', error);

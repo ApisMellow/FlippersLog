@@ -160,7 +160,7 @@ export default function ManualEntryScreen() {
             )}
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Table Name *</Text>
+              <Text style={styles.label}>Table Name</Text>
               <TextInput
                 style={styles.input}
                 placeholder="e.g., Medieval Madness"
@@ -183,7 +183,7 @@ export default function ManualEntryScreen() {
             </View>
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Score *</Text>
+              <Text style={styles.label}>Score</Text>
               <TextInput
                 style={[styles.input, styles.scoreInput]}
                 placeholder="0"
@@ -208,10 +208,6 @@ export default function ManualEntryScreen() {
               {saving ? 'Saving...' : 'Save Score'}
             </Text>
           </TouchableOpacity>
-
-          <Text style={styles.hint}>
-            * Required fields
-          </Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -309,11 +305,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: '700',
-  },
-  hint: {
-    fontSize: 14,
-    color: '#A0AEC0',
-    textAlign: 'center',
-    marginTop: 12,
   },
 });
