@@ -18,7 +18,6 @@ import { Table } from '@/types';
 export default function ManualEntryScreen() {
   const router = useRouter();
   const [tableName, setTableName] = useState('');
-  const [manufacturer, setManufacturer] = useState('');
   const [score, setScore] = useState('');
   const [saving, setSaving] = useState(false);
   const [sampleTables, setSampleTables] = useState<Table[]>([]);
@@ -54,7 +53,6 @@ export default function ManualEntryScreen() {
 
   const selectTable = (table: Table) => {
     setTableName(table.name);
-    setManufacturer(table.manufacturer || '');
     setShowSuggestions(false);
   };
 
@@ -91,7 +89,6 @@ export default function ManualEntryScreen() {
       // Save or get the table
       const table = await storage.saveTable({
         name: tableName.trim(),
-        manufacturer: manufacturer.trim() || undefined,
       });
 
       // Save the score
@@ -169,23 +166,11 @@ export default function ManualEntryScreen() {
                   style={styles.clearButton}
                   onPress={() => {
                     setTableName('');
-                    setManufacturer('');
                   }}
                 >
                   <Text style={styles.clearButtonText}>×</Text>
                 </TouchableOpacity>
               )}
-            </View>
-
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Manufacturer</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., Williams, Stern, Bally"
-                value={manufacturer}
-                onChangeText={setManufacturer}
-                autoCapitalize="words"
-              />
             </View>
 
             <View style={styles.fieldContainer}>
