@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { storage } from '@/services/storage';
-import { Ionicons } from '@expo/vector-icons';
 import { Table } from '@/types';
 
 export default function ManualEntryScreen() {
@@ -24,14 +24,33 @@ export default function ManualEntryScreen() {
   const [sampleTables, setSampleTables] = useState<Table[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  useEffect(() => {
-    loadSampleTables();
+  const loadTablesForQuickSelect = useCallback(async () => {
+    try {
+      // Try to load user's actual saved tables
+      const userTables = await storage.getTables();
+
+      if (userTables.length > 0) {
+        // Show real user tables
+        setSampleTables(userTables);
+      } else {
+        // Fallback: show sample tables for new users with no saved tables
+        const samples = await storage.getSampleTables();
+        setSampleTables(samples);
+      }
+    } catch (error) {
+      console.error('Error loading tables for quick select:', error);
+      // On error, fall back to sample tables
+      const samples = await storage.getSampleTables();
+      setSampleTables(samples);
+    }
   }, []);
 
-  const loadSampleTables = async () => {
-    const samples = await storage.getSampleTables();
-    setSampleTables(samples);
-  };
+  // Load tables when screen mounts and whenever it regains focus
+  useFocusEffect(
+    useCallback(() => {
+      loadTablesForQuickSelect();
+    }, [loadTablesForQuickSelect])
+  );
 
   const selectTable = (table: Table) => {
     setTableName(table.name);
@@ -109,7 +128,11 @@ export default function ManualEntryScreen() {
       <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
         <View style={styles.content}>
           <View style={styles.iconContainer}>
-            <Ionicons name="game-controller" size={48} color="#6BA3D4" />
+            <Image
+              testID="flipper-icon"
+              source={require('@/assets/pinball-flippers.png')}
+              style={{ width: 120, height: 120 }}
+            />
           </View>
 
           <View style={styles.form}>
@@ -149,7 +172,7 @@ export default function ManualEntryScreen() {
                     setManufacturer('');
                   }}
                 >
-                  <Ionicons name="close-circle" size={20} color="#A0AEC0" />
+                  <Text style={styles.clearButtonText}>×</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -248,6 +271,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 12,
     top: 40,
+  },
+  clearButtonText: {
+    fontSize: 24,
+    color: '#A0AEC0',
+    fontWeight: '300',
   },
   input: {
     backgroundColor: '#3B4F6B',
