@@ -11,6 +11,7 @@ export interface Table {
   id: string;
   name: string;
   year?: number;
+  lastUsedDate?: string; // ISO date string - updated when scores saved/updated
 }
 
 export interface TableWithScores extends Table {

@@ -37,7 +37,7 @@ export const storage = {
   },
 
   // Add a new score with tableName (preferred method)
-  async addScore(scoreData: { score: number; tableName: string; date: string; photoUri?: string }): Promise<void> {
+  async addScore(scoreData: { score: number; tableName: string; date: string; photoUri?: string }): Promise<Score> {
     try {
       const scores = await this.getScores();
       // Generate unique ID by combining timestamp with random number to avoid collisions
@@ -52,8 +52,26 @@ export const storage = {
       scores.push(newScore);
       await AsyncStorage.setItem(SCORES_KEY, JSON.stringify(scores));
 
-      // Ensure table exists
-      await this.addTable(scoreData.tableName);
+      // Ensure table exists and update lastUsedDate
+      const tables = await this.getTables();
+      const tableIndex = tables.findIndex(t => t.name === scoreData.tableName);
+
+      if (tableIndex >= 0) {
+        // Update existing table's lastUsedDate
+        tables[tableIndex].lastUsedDate = new Date().toISOString();
+        await AsyncStorage.setItem(TABLES_KEY, JSON.stringify(tables));
+      } else {
+        // Create new table with lastUsedDate
+        const newTable: Table = {
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          name: scoreData.tableName,
+          lastUsedDate: new Date().toISOString(),
+        };
+        tables.push(newTable);
+        await AsyncStorage.setItem(TABLES_KEY, JSON.stringify(tables));
+      }
+
+      return newScore;
     } catch (error) {
       console.error('Error adding score:', error);
       throw error;
@@ -244,26 +262,49 @@ export const storage = {
 
       await AsyncStorage.setItem(SCORES_KEY, JSON.stringify(scores));
 
-      // If table name changed, handle table migration
-      if (updates.tableName && updates.tableName !== oldScore.tableName) {
-        // Check if old table should be removed
-        // Exclude the current score being updated from the filter
-        const remainingOldTableScores = scores.filter(
-          s => s.tableName === oldScore.tableName && s.id !== scoreId
-        );
+      // Get tables and update lastUsedDate for the table
+      const tablesJson = await AsyncStorage.getItem(TABLES_KEY);
+      if (tablesJson) {
+        let tables: Table[] = JSON.parse(tablesJson);
 
-        if (remainingOldTableScores.length === 0) {
-          // Remove old table
-          const tablesJson = await AsyncStorage.getItem(TABLES_KEY);
-          if (tablesJson) {
-            const tables: Table[] = JSON.parse(tablesJson);
-            const updatedTables = tables.filter(t => t.name !== oldScore.tableName);
-            await AsyncStorage.setItem(TABLES_KEY, JSON.stringify(updatedTables));
+        // If table name changed, handle table migration first
+        if (updates.tableName && updates.tableName !== oldScore.tableName) {
+          // Check if old table should be removed
+          // Exclude the current score being updated from the filter
+          const remainingOldTableScores = scores.filter(
+            s => s.tableName === oldScore.tableName && s.id !== scoreId
+          );
+
+          if (remainingOldTableScores.length === 0) {
+            // Remove old table
+            tables = tables.filter(t => t.name !== oldScore.tableName);
+          } else {
+            // Keep old table but update its lastUsedDate
+            const oldTableIndex = tables.findIndex(t => t.name === oldScore.tableName);
+            if (oldTableIndex >= 0) {
+              tables[oldTableIndex].lastUsedDate = new Date().toISOString();
+            }
           }
         }
 
-        // Ensure new table exists
-        await this.addTable(updates.tableName);
+        // Now update/ensure the table being used for this score
+        const tableNameToUpdate = updates.tableName || oldScore.tableName;
+        let tableIndexToUpdate = tables.findIndex(t => t.name === tableNameToUpdate);
+
+        if (tableIndexToUpdate < 0) {
+          // Table doesn't exist, create it
+          const newTable: Table = {
+            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            name: tableNameToUpdate,
+            lastUsedDate: new Date().toISOString(),
+          };
+          tables.push(newTable);
+        } else {
+          // Update existing table's lastUsedDate
+          tables[tableIndexToUpdate].lastUsedDate = new Date().toISOString();
+        }
+
+        await AsyncStorage.setItem(TABLES_KEY, JSON.stringify(tables));
       }
     } catch (error) {
       console.error('Error updating score:', error);
