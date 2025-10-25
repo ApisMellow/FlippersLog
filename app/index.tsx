@@ -7,6 +7,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatScoreDate } from '@/utils/date-format';
 import { Swipeable } from 'react-native-gesture-handler';
 
+// Custom Plus Icon Component
+const PlusIcon = () => (
+  <View style={styles.plusIconContainer}>
+    <View style={styles.plusHorizontal} />
+    <View style={styles.plusVertical} />
+  </View>
+);
+
 export default function HomeScreen() {
   const router = useRouter();
   const [tables, setTables] = useState<TableWithScores[]>([]);
@@ -141,7 +149,7 @@ export default function HomeScreen() {
           style={[styles.fab, styles.fabSecondary]}
           onPress={() => router.push('/manual-entry')}
         >
-          <Ionicons name="create-outline" size={24} color="white" />
+          <PlusIcon />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.fab}
@@ -290,6 +298,24 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     backgroundColor: '#495A73',
+  },
+  plusIconContainer: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  plusHorizontal: {
+    position: 'absolute',
+    width: 12,
+    height: 2,
+    backgroundColor: 'white',
+  },
+  plusVertical: {
+    position: 'absolute',
+    width: 2,
+    height: 12,
+    backgroundColor: 'white',
   },
   swipeDeleteButton: {
     backgroundColor: '#FF3B30',
