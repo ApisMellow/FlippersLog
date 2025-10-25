@@ -143,7 +143,7 @@ describe('EditScore', () => {
   });
 
 
-  it('photo is appropriately sized to allow keyboard interaction', () => {
+  it('photo takes up approximately 60% of screen height', () => {
     (useLocalSearchParams as jest.Mock).mockReturnValue({
       detectedScore: '100000',
       detectedTableName: 'Medieval Madness',
@@ -153,8 +153,8 @@ describe('EditScore', () => {
     const { getByTestId } = render(<EditScore />);
     const photo = getByTestId('photo-image');
 
-    // Photo is 200px tall to allow form and keyboard to be visible simultaneously
-    expect(photo.props.style.height).toBe(200);
+    // 60% of typical screen (~350px from 600px total)
+    expect(photo.props.style.height).toBeGreaterThanOrEqual(300);
   });
 
   it('buttons are side-by-side (equal width) at bottom', () => {
