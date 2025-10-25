@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Pressable, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Pressable, Alert, ImageBackground } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { storage } from '@/services/storage';
 import { TableWithScores } from '@/types';
@@ -65,13 +65,14 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container} testID="home-container">
+    <ImageBackground
+      source={require('@/assets/adaptive-icon.png')}
+      style={styles.container}
+      imageStyle={styles.backgroundImage}
+      testID="home-container"
+    >
       {tables.length === 0 ? (
         <View style={styles.emptyState}>
-          <Image
-            source={require('@/assets/adaptive-icon.png')}
-            style={{ width: 64, height: 64 }}
-          />
           <Text style={styles.emptyText}>No scores yet!</Text>
           <Text style={styles.emptySubtext}>Tap the + button to add your first score</Text>
         </View>
@@ -149,7 +150,7 @@ export default function HomeScreen() {
           <Ionicons name="camera" size={28} color="white" />
         </TouchableOpacity>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
@@ -157,6 +158,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#2E3E52',
+  },
+  backgroundImage: {
+    opacity: 0.12,
+    resizeMode: 'center',
   },
   emptyState: {
     flex: 1,
