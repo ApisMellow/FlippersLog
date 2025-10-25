@@ -11,7 +11,16 @@
 ### Medium Priority
 - [x] get rid of the 'delete' button since we have swipe-to-delete
 - [ ] EM wheel-style score edit
-- [ ] quick select on table name at detection confirm screen (regression)
+- [x] quick select on table name at detection confirm screen
+- [x] edit score shows Table Unknown. 
+- [x] must be keeping the photo, when i edit a photo import, it recalls the image. table name works
+- [x] but a manually entered table has table unknown when i edit.  
+- [x] quick select seems to have infinite stacking, need only a couple of lines. 
+- [ ] ordering of a large number of tables? 
+- [ ] dont need "required fields" or the star after Table Name or Score
+- [ ] bug: i have Medieval Madness in my quick select. I want to enter Monster Mash, which is not there. I type, M, it shows Medieval madness only, I type O, and it adds to the autocompleted word. 
+- [ ] No scores yet page still has game controller icon. 
+
 
 ### Low Priority / Nice to Have
 - [ ] investigate the "card" stacking part of the UI

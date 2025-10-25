@@ -22,7 +22,7 @@ describe('Manual Entry - Quick Select Limit', () => {
     });
   });
 
-  it('should show only 7 most recent tables in quick select', async () => {
+  it('should show only 10 most recent tables in quick select', async () => {
     const mockTables = Array.from({ length: 15 }, (_, i) => ({
       id: `table-${i}`,
       name: `Table ${i}`,
@@ -35,13 +35,13 @@ describe('Manual Entry - Quick Select Limit', () => {
     const { getByText, queryByText } = render(<ManualEntryScreen />);
 
     await waitFor(() => {
-      // Should only show first 7 tables (0-6)
-      for (let i = 0; i < 7; i++) {
+      // Should only show first 10 tables (0-9)
+      for (let i = 0; i < 10; i++) {
         expect(getByText(`Table ${i}`)).toBeTruthy();
       }
 
-      // Should NOT show tables 7-14
-      expect(queryByText('Table 7')).toBeNull();
+      // Should NOT show tables 10-14
+      expect(queryByText('Table 10')).toBeNull();
       expect(queryByText('Table 14')).toBeNull();
     });
   });

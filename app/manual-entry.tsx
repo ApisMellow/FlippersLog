@@ -22,7 +22,6 @@ export default function ManualEntryScreen() {
   const [score, setScore] = useState('');
   const [saving, setSaving] = useState(false);
   const [sampleTables, setSampleTables] = useState<Table[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const loadTablesForQuickSelect = useCallback(async () => {
     try {
@@ -30,14 +29,14 @@ export default function ManualEntryScreen() {
       const userTables = await storage.getTables();
 
       if (userTables.length > 0) {
-        // Sort by lastUsedDate (most recent first), limit to 7
+        // Sort by lastUsedDate (most recent first), limit to 10
         const sortedTables = userTables
           .sort((a, b) => {
             const dateA = new Date(a.lastUsedDate || 0).getTime();
             const dateB = new Date(b.lastUsedDate || 0).getTime();
             return dateB - dateA; // Most recent first
           })
-          .slice(0, 7); // Take only first 7
+          .slice(0, 10); // Take only first 10
 
         setSampleTables(sortedTables);
       } else {
@@ -63,37 +62,11 @@ export default function ManualEntryScreen() {
   const selectTable = (table: Table) => {
     setTableName(table.name);
     setTableInputValue(table.name);
-    setShowSuggestions(false);
   };
 
   const handleTableNameInputChange = (text: string) => {
     setTableInputValue(text);
     setTableName(text);
-
-    if (text.length === 0) {
-      // No text - show quick select again
-      loadTablesForQuickSelect();
-    } else {
-      // Filter tables by text match
-      const matchingTables = sampleTables.filter(table =>
-        table.name.toLowerCase().includes(text.toLowerCase())
-      );
-
-      if (matchingTables.length > 0) {
-        // Show filtered matches (could be 1 or more)
-        setSampleTables(matchingTables);
-
-        // If exactly one table matches, autocomplete the input value
-        // but don't require the user to select it
-        if (matchingTables.length === 1) {
-          const fullName = matchingTables[0].name;
-          setTableInputValue(fullName);
-        }
-      } else {
-        // No matches - hide quick select
-        setSampleTables([]);
-      }
-    }
   };
 
   const formatScoreInput = (text: string) => {
@@ -169,7 +142,7 @@ export default function ManualEntryScreen() {
 
           <View style={styles.form}>
             {/* Sample Tables Quick Select / Autocomplete Suggestions */}
-            {sampleTables.length > 0 && (
+            {sampleTables.length > 0 && tableInputValue === '' && (
               <View style={styles.fieldContainer}>
                 <Text style={styles.label}>Quick Select</Text>
                 <View style={styles.sampleTablesContainer}>
@@ -202,7 +175,6 @@ export default function ManualEntryScreen() {
                   onPress={() => {
                     setTableName('');
                     setTableInputValue('');
-                    loadTablesForQuickSelect();
                   }}
                 >
                   <Text style={styles.clearButtonText}>×</Text>
