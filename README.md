@@ -2,12 +2,13 @@
 
 A mobile app for tracking your pinball high scores with AI-powered photo scanning.
 
+**Current Version: 1.1.0**
+
 ## Features
 
 - 📸 **Quick Capture**: Take a photo of the score display and let AI extract the table name and score
 - ✍️ **Manual Entry**: Fast manual entry with table search and formatted score input
 - 🏆 **Top 3 Scores**: Track your top 3 scores for each pinball table
-- 📊 **Score History**: View all your scores organized by table
 
 ## Tech Stack
 
@@ -17,7 +18,6 @@ A mobile app for tracking your pinball high scores with AI-powered photo scannin
 - **Expo Router 5** - File-based navigation
 - **Expo Camera 17** - Photo capture
 - **AsyncStorage 2.1** - Local data persistence
-- **AI Vision API** (coming soon) - Claude or OpenAI for photo analysis
 
 ## Getting Started
 
@@ -71,9 +71,7 @@ FlippersLog/
 
 ## Future Features
 
-- 📈 Score over time graphs
 - 🤝 Social sharing
-- 🔄 Cross-platform sync
 - 🎮 Pinball table database integration
 - 🔍 Table search with autocomplete
 
