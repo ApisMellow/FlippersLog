@@ -10,7 +10,6 @@ export interface Score {
 export interface Table {
   id: string;
   name: string;
-  manufacturer?: string;
   year?: number;
 }
 
