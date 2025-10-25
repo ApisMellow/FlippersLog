@@ -56,11 +56,47 @@ Options:
 ### Current Behavior
 Currently storing full photoUri in AsyncStorage for every score - this could use significant storage if many photo-imported scores exist.
 
-### Files to Investigate
-- `services/storage.ts` - Check how photoUri is stored
-- `app/capture.tsx` - Check how photo is captured and passed
-- `app/edit-score.tsx` - Line 38 loads photoUri
-- `types/index.ts` - Score interface includes photoUri
+### Investigation Findings
+
+**Photo URI Content:**
+- From `app/capture.tsx`:
+  - Camera photos: `photo.uri` from `cameraRef.current.takePictureAsync()`
+  - Gallery photos: `result.assets[0].uri` from `ImagePicker.launchImageLibraryAsync()`
+  - These are **file paths** (not base64), typically like `/path/to/Library/Caches/...` for camera or `/path/to/Photos/...` for library
+
+**Storage Flow:**
+1. Photo is captured/selected in capture.tsx
+2. photoUri (file path) is passed via navigation params
+3. User confirms, photoUri is stored in AsyncStorage via addScore()
+4. On edit screen, photoUri is retrieved from AsyncStorage and displayed
+
+**Storage Overhead Analysis:**
+- Photo URI is a file path string (~100-200 bytes)
+- File paths are NOT duplicate copies of the photo data
+- Actual photo remains in device storage (camera roll or file system)
+- Only the URI reference string (~150 bytes) is stored in AsyncStorage
+- For 100 photo-imported scores: ~15KB storage overhead (negligible)
+
+**Safety Assessment:**
+- The stored photoUri remains valid only if the original photo file still exists
+- Camera photos are temporary files (~days of persistence, could be deleted by OS)
+- Gallery photos are permanent (safe reference)
+- If user deletes the original photo from device, the photoUri becomes invalid
+- Trying to display an invalid photoUri will fail silently in React Native Image component
+
+**Recommendation:**
+Keep current behavior (storing photoUri strings). However, should consider:
+1. Add error handling for missing/deleted photos in Image components
+2. Document that camera photos are temporary and may disappear
+3. Offer manual photo import from gallery if OS deletes cache
+4. No optimization needed - storage overhead is negligible
+
+### Files Investigated
+- `services/storage.ts` - Stores photoUri in AsyncStorage with scores
+- `app/capture.tsx` - Captures photoUri from Camera or ImagePicker APIs
+- `app/edit-score.tsx` - Line 38 loads photoUri from AsyncStorage
+- `app/review-score.tsx` - Line 73 displays photoUri in Image component
+- `types/index.ts` - Score interface includes optional photoUri field
 
 ---
 
