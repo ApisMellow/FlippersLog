@@ -190,6 +190,8 @@ export default function ManualEntryScreen() {
                 value={score}
                 onChangeText={handleScoreChange}
                 keyboardType="number-pad"
+                onSubmitEditing={handleSave}
+                returnKeyType="done"
               />
               {score && (
                 <Text style={styles.scorePreview}>
