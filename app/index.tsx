@@ -109,10 +109,15 @@ export default function HomeScreen() {
   };
 
   // Filter scores by active venue if set
-  // Show only tables that exist at the active venue
+  // Show only tables that exist at the active venue (case-insensitive matching)
   const displayTables = activeVenue
     ? tables
-        .filter((table) => activeVenue.machines.includes(table.name))
+        .filter((table) => {
+          const lowerTableName = table.name.toLowerCase();
+          return activeVenue.machines.some(
+            (machine) => machine.toLowerCase() === lowerTableName
+          );
+        })
         .map((table) => ({
           ...table,
           topScores: table.topScores,
