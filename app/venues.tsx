@@ -47,7 +47,7 @@ const MOCK_LOCATIONS = {
 
 // Set this to test with a mock location (or null for real GPS)
 // To test with mock: const MOCK_LOCATION = MOCK_LOCATIONS.the_ice_box;
-const MOCK_LOCATION: typeof MOCK_LOCATIONS.the_ice_box | null = MOCK_LOCATIONS.the_ice_box;
+const MOCK_LOCATION: typeof MOCK_LOCATIONS.the_ice_box | null = null;
 
 export default function VenuesScreen() {
   const router = useRouter();
