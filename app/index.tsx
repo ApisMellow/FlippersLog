@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Pressable, Alert, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Pressable, Alert, ImageBackground, ScrollView } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { storage } from '@/services/storage';
 import { TableWithScores } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { formatScoreDate } from '@/utils/date-format';
 import { Swipeable } from 'react-native-gesture-handler';
+import { getActiveVenue, clearActiveVenue } from '@/services/venue-context';
 
 // Custom Plus Icon Component
 const PlusIcon = () => (
@@ -19,8 +20,14 @@ export default function HomeScreen() {
   const router = useRouter();
   const [tables, setTables] = useState<TableWithScores[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [activeVenue, setActiveVenue] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
 
   const loadTables = async () => {
+    const venue = await getActiveVenue();
+    setActiveVenue(venue);
     const data = await storage.getTablesWithScores();
     setTables(data);
   };
@@ -29,6 +36,12 @@ export default function HomeScreen() {
     setRefreshing(true);
     await loadTables();
     setRefreshing(false);
+  };
+
+  const handleClearVenue = async () => {
+    await clearActiveVenue();
+    setActiveVenue(null);
+    await loadTables();
   };
 
   // Reload data when screen comes into focus
@@ -47,6 +60,29 @@ export default function HomeScreen() {
       pathname: '/edit-score',
       params: { scoreId },
     });
+  };
+
+  const handleTableNameTap = (tableName: string) => {
+    Alert.alert(
+      'Enter Score',
+      `Do you want to enter a score for ${tableName}?`,
+      [
+        {
+          text: 'Cancel',
+          onPress: () => {},
+          style: 'cancel',
+        },
+        {
+          text: 'Yes',
+          onPress: () => {
+            router.push({
+              pathname: '/manual-entry',
+              params: { tableName },
+            });
+          },
+        },
+      ]
+    );
   };
 
   const handleDeleteScore = async (scoreId: string) => {
@@ -72,6 +108,17 @@ export default function HomeScreen() {
     );
   };
 
+  // Filter scores by active venue if set
+  // Show only tables that exist at the active venue
+  const displayTables = activeVenue
+    ? tables
+        .filter((table) => activeVenue.machines.includes(table.name))
+        .map((table) => ({
+          ...table,
+          topScores: table.topScores,
+        }))
+    : tables;
+
   return (
     <ImageBackground
       source={require('@/assets/adaptive-icon.png')}
@@ -79,14 +126,52 @@ export default function HomeScreen() {
       imageStyle={styles.backgroundImage}
       testID="home-container"
     >
-      {tables.length === 0 ? (
+      {activeVenue && (
+        <View style={styles.venueChip}>
+          <Text style={styles.venueChipText}>📍 {activeVenue.name}</Text>
+          <TouchableOpacity
+            testID="clear-venue-button"
+            onPress={handleClearVenue}
+          >
+            <Ionicons name="close" size={20} color="#E8EEF5" />
+          </TouchableOpacity>
+        </View>
+      )}
+      {displayTables.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>No scores yet!</Text>
           <Text style={styles.emptySubtext}>Tap the + button to add your first score</Text>
+
+          {activeVenue && activeVenue.machines.length > 0 && (
+            <View style={styles.suggestedTablesContainer}>
+              <Text style={styles.suggestedTablesLabel}>Tables at {activeVenue.name}:</Text>
+              <ScrollView
+                style={styles.suggestedTablesList}
+                scrollEnabled={activeVenue.machines.length > 4}
+              >
+                {activeVenue.machines.slice(0, 10).map((machineName, index) => (
+                  <Pressable
+                    key={index}
+                    onPress={() => handleTableNameTap(machineName)}
+                    style={styles.suggestedTableNameButton}
+                  >
+                    <Text style={styles.suggestedTableName}>
+                      • {machineName}
+                    </Text>
+                  </Pressable>
+                ))}
+                {activeVenue.machines.length > 10 && (
+                  <Text style={styles.suggestedTableName}>
+                    • ... and {activeVenue.machines.length - 10} more
+                  </Text>
+                )}
+              </ScrollView>
+            </View>
+          )}
         </View>
       ) : (
         <FlatList
-          data={tables}
+          data={displayTables}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingBottom: 100 }}
           refreshControl={
@@ -145,6 +230,14 @@ export default function HomeScreen() {
 
       {/* Floating Action Buttons */}
       <View style={styles.fabContainer}>
+        <TouchableOpacity
+          testID="venue-fab"
+          style={[styles.fab, styles.fabVenue]}
+          onPress={() => router.push('/venues')}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.fabEmoji}>🎯</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={[styles.fab, styles.fabSecondary]}
           onPress={() => router.push('/manual-entry')}
@@ -299,6 +392,15 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     backgroundColor: '#495A73',
   },
+  fabVenue: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#6BA3D4',
+  },
+  fabEmoji: {
+    fontSize: 24,
+  },
   plusIconContainer: {
     width: 24,
     height: 24,
@@ -329,5 +431,50 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginTop: 4,
+  },
+  venueChip: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#3B4F6B',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#6BA3D4',
+  },
+  venueChipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#E8EEF5',
+  },
+  suggestedTablesContainer: {
+    marginTop: 24,
+    paddingHorizontal: 16,
+    maxHeight: 200,
+  },
+  suggestedTablesLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#A0AEC0',
+    marginBottom: 12,
+  },
+  suggestedTablesList: {
+    maxHeight: 160,
+  },
+  suggestedTableNameButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+  },
+  suggestedTableName: {
+    fontSize: 13,
+    color: '#6BA3D4',
+    opacity: 0.7,
+    marginBottom: 6,
+    lineHeight: 18,
   },
 });

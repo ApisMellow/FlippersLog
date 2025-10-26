@@ -37,7 +37,7 @@ export const storage = {
   },
 
   // Add a new score with tableName (preferred method)
-  async addScore(scoreData: { score: number; tableName: string; date: string; photoUri?: string }): Promise<Score> {
+  async addScore(scoreData: { score: number; tableName: string; date: string; photoUri?: string; venueId?: number }): Promise<Score> {
     try {
       const scores = await this.getScores();
       // Generate unique ID by combining timestamp with random number to avoid collisions
@@ -48,6 +48,7 @@ export const storage = {
         tableName: scoreData.tableName,
         date: scoreData.date,
         photoUri: scoreData.photoUri,
+        venueId: scoreData.venueId,
       };
       scores.push(newScore);
       await AsyncStorage.setItem(SCORES_KEY, JSON.stringify(scores));

@@ -97,6 +97,14 @@ Return as JSON: { tableName, score, manufacturer }
 
 This is a personal project, but suggestions and feedback are welcome!
 
+## Credits & Data Sources
+
+This app uses location data and venue information from:
+
+- **❤️ Pinball Map** (https://pinballmap.com) - Community-maintained database of pinball locations and machines worldwide
+
+The Pinball Map API provides freely accessible data about pinball venues and machine locations, helping players discover new places to play.
+
 ## License
 
 MIT

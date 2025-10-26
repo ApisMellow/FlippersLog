@@ -15,6 +15,7 @@ jest.mock('expo-router', () => ({
       useCallbackFn();
     }
   }),
+  useLocalSearchParams: jest.fn(() => ({})),
 }));
 
 jest.mock('@/services/storage', () => ({

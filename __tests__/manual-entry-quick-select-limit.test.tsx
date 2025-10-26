@@ -9,6 +9,7 @@ jest.mock('expo-router', () => ({
   useFocusEffect: jest.fn((callback) => {
     callback();
   }),
+  useLocalSearchParams: jest.fn(() => ({})),
 }));
 
 jest.mock('@/services/storage');

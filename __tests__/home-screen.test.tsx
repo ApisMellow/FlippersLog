@@ -165,4 +165,21 @@ describe('Home Screen', () => {
       expect(swipeables.length).toBeGreaterThan(0);
     });
   });
+
+  it('renders venue discovery FAB', () => {
+    const { getByTestId } = render(<HomeScreen />);
+    const venueFab = getByTestId('venue-fab');
+    expect(venueFab).toBeTruthy();
+  });
+
+  it('navigates to venues screen when venue FAB tapped', async () => {
+    const { getByTestId } = render(<HomeScreen />);
+    const venueFab = getByTestId('venue-fab');
+
+    fireEvent.press(venueFab);
+
+    await waitFor(() => {
+      expect(mockRouter.push).toHaveBeenCalledWith('/venues');
+    });
+  });
 });
