@@ -1,0 +1,139 @@
+/**
+ * Pinball Map API Integration
+ * Uses data from Pinball Map (https://pinballmap.com)
+ * Community-maintained database of pinball locations and machines
+ * ❤️ pinballmap.com
+ */
+
+const BASE_URL = 'https://pinballmap.com/api/v1';
+const WA_REGIONS = ['seattle', 'spokane'];
+const CACHE_KEY = '@flipperslog:pinballmap_cache';
+const CACHE_EXPIRY_KEY = '@flipperslog:pinballmap_cache_expiry';
+const CACHE_DURATION_DAYS = 7;
+
+export interface PinballVenue {
+  id: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+  machineCount: number;
+  distance: number; // in kilometers
+}
+
+interface LocationData {
+  id: number;
+  name: string;
+  lat: number;
+  lng: number;
+}
+
+interface MachineXref {
+  location_id: number;
+  machine: {
+    name: string;
+    year: number;
+    manufacturer: string;
+  };
+}
+
+// Calculate distance between two coordinates in kilometers (Haversine formula)
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+async function fetchAllLocations(): Promise<LocationData[]> {
+  const allLocations: LocationData[] = [];
+
+  try {
+    for (const region of WA_REGIONS) {
+      const url = `${BASE_URL}/region/${region}/locations.json`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const data = await response.json();
+      const locations = data.locations || [];
+      allLocations.push(
+        ...locations.map((loc: any) => ({
+          id: loc.id,
+          name: loc.name,
+          lat: parseFloat(loc.lat),
+          lng: parseFloat(loc.lon),
+        }))
+      );
+    }
+    return allLocations;
+  } catch (error) {
+    console.error('Error fetching locations from Pinball Map API:', error);
+    throw error;
+  }
+}
+
+async function fetchMachineCount(locationId: number): Promise<number> {
+  try {
+    let count = 0;
+
+    for (const region of WA_REGIONS) {
+      const url = `${BASE_URL}/region/${region}/location_machine_xrefs.json`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const data = await response.json();
+      const xrefs = data.location_machine_xrefs || [];
+      count += xrefs.filter((xref: MachineXref) => xref.location_id === locationId).length;
+    }
+
+    return count;
+  } catch (error) {
+    console.error(`Error fetching machine count for location ${locationId}:`, error);
+    return 0;
+  }
+}
+
+export async function getNearbyVenues(
+  userLatitude: number,
+  userLongitude: number
+): Promise<PinballVenue[]> {
+  try {
+    // Fetch all locations
+    const locations = await fetchAllLocations();
+
+    // Calculate distances and filter to 0.5km
+    const venuesWithDistance = await Promise.all(
+      locations.map(async (loc) => {
+        const distance = calculateDistance(userLatitude, userLongitude, loc.lat, loc.lng);
+
+        if (distance <= 0.5) {
+          const machineCount = await fetchMachineCount(loc.id);
+          return {
+            id: loc.id,
+            name: loc.name,
+            latitude: loc.lat,
+            longitude: loc.lng,
+            machineCount,
+            distance,
+          };
+        }
+        return null;
+      })
+    );
+
+    // Filter nulls, sort by distance, limit to 3
+    return venuesWithDistance
+      .filter((v): v is PinballVenue => v !== null)
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, 3);
+  } catch (error) {
+    console.error('Error in getNearbyVenues:', error);
+    throw error;
+  }
+}
