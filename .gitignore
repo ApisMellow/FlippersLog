@@ -20,9 +20,6 @@ web-build/
 .env*.local
 .env
 
-# Config files with embedded secrets
-app.config.js
-
 # typescript
 *.tsbuildinfo
 
@@ -37,3 +34,8 @@ skills-used.txt
 
 # Bug fix documents
 BUGFIX.md
+
+# Build artifacts
+android/app/build/
+android/build/
+*.apk
