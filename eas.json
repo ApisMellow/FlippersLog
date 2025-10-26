@@ -13,12 +13,18 @@
     },
     "preview": {
       "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
       "env": {
         "ANTHROPIC_API_KEY": "@ANTHROPIC_API_KEY"
       }
     },
     "production": {
       "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      },
       "env": {
         "ANTHROPIC_API_KEY": "@ANTHROPIC_API_KEY"
       }
