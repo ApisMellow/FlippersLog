@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { storage } from '@/services/storage';
+import { getActiveVenue } from '@/services/venue-context';
 import { Table } from '@/types';
 
 export default function ManualEntryScreen() {
@@ -97,11 +98,15 @@ export default function ManualEntryScreen() {
     }
 
     try {
-      // Save the score with tableName (new preferred method)
+      // Get active venue if set
+      const activeVenue = await getActiveVenue();
+
+      // Save the score with tableName and optional venueId
       await storage.addScore({
         score: numericScore,
         tableName: tableName.trim(),
         date: new Date().toISOString(),
+        venueId: activeVenue?.id,
       });
 
       Alert.alert(

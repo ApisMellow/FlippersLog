@@ -21,6 +21,8 @@ describe('Venues Screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
+    // Mock venue context to return null (no active venue)
+    (venueContext.getActiveVenue as jest.Mock).mockResolvedValue(null);
   });
 
   it('requests GPS location on mount', async () => {
