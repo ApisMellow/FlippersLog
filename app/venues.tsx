@@ -14,12 +14,13 @@ import {
   ActivityIndicator,
   Pressable,
   Animated,
+  TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { getNearbyVenues, PinballVenue } from '../services/pinballmap-api';
+import { getNearbyVenues, searchVenuesByName, PinballVenue } from '../services/pinballmap-api';
 import { setActiveVenue } from '../services/venue-context';
 
 const COLORS = {
@@ -56,6 +57,9 @@ export default function VenuesScreen() {
   const [venues, setVenues] = useState<PinballVenue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchMode, setSearchMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<PinballVenue[]>([]);
   const [spinAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
@@ -106,11 +110,12 @@ export default function VenuesScreen() {
         longitude = location.coords.longitude;
       }
 
-      // Fetch nearby venues
+      // Fetch nearby venues (will auto-expand to 1km if 0.5km yields no results)
       const nearbyVenues = await getNearbyVenues(latitude, longitude);
 
       if (nearbyVenues.length === 0) {
-        setError('No pinball venues nearby within 0.5km. Try moving or expand your search.');
+        setError('No pinball venues found nearby. Try searching by name.');
+        setSearchMode(false);
       } else {
         setVenues(nearbyVenues);
       }
@@ -119,6 +124,22 @@ export default function VenuesScreen() {
       console.error('Error fetching venues:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSearchVenues = async (query: string) => {
+    setSearchQuery(query);
+    if (query.trim().length === 0) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      const results = await searchVenuesByName(query);
+      setSearchResults(results);
+    } catch (err) {
+      console.error('Error searching venues:', err);
+      setSearchResults([]);
     }
   };
 
@@ -148,12 +169,56 @@ export default function VenuesScreen() {
           </Animated.Text>
           <Text style={styles.loadingText}>Finding venues...</Text>
         </View>
-      ) : error ? (
+      ) : error && !searchMode ? (
         <View style={styles.centerContent}>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchNearbyVenues}>
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.retryButton, { marginTop: 12, backgroundColor: COLORS.card }]}
+            onPress={() => setSearchMode(true)}
+          >
+            <Text style={styles.retryButtonText}>Search by Name</Text>
+          </TouchableOpacity>
+        </View>
+      ) : searchMode ? (
+        <View style={styles.flex1}>
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search venue name..."
+              placeholderTextColor={COLORS.textSecondary}
+              value={searchQuery}
+              onChangeText={handleSearchVenues}
+              returnKeyType="search"
+            />
+            <TouchableOpacity onPress={() => setSearchMode(false)}>
+              <Ionicons name="close" size={24} color={COLORS.text} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={styles.venuesList}>
+            {searchResults.map((venue) => (
+              <TouchableOpacity
+                key={venue.id}
+                style={styles.venueCard}
+                onPress={() => handleVenueSelect(venue)}
+              >
+                <View style={styles.venueInfo}>
+                  <Text style={styles.venueName}>{venue.name}</Text>
+                  <Text style={styles.machineCount}>{venue.machineCount} machines</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color={COLORS.accent} />
+              </TouchableOpacity>
+            ))}
+            {searchQuery && searchResults.length === 0 && (
+              <Text style={styles.noResultsText}>No venues found matching "{searchQuery}"</Text>
+            )}
+            {!searchQuery && (
+              <Text style={styles.searchHintText}>Type a venue name to search</Text>
+            )}
+            <Text style={styles.attribution}>❤️ pinballmap.com</Text>
+          </ScrollView>
         </View>
       ) : (
         <ScrollView style={styles.venuesList}>
@@ -261,5 +326,38 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 24,
     marginBottom: 12,
+  },
+  flex1: {
+    flex: 1,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.card,
+  },
+  searchInput: {
+    flex: 1,
+    backgroundColor: COLORS.card,
+    color: COLORS.text,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    fontSize: 16,
+    marginRight: 12,
+  },
+  noResultsText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: 24,
+  },
+  searchHintText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: 24,
   },
 });

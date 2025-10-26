@@ -107,33 +107,92 @@ export async function getNearbyVenues(
     // Fetch all locations
     const locations = await fetchAllLocations();
 
-    // Calculate distances and filter to 0.5km
-    const venuesWithDistance = await Promise.all(
-      locations.map(async (loc) => {
-        const distance = calculateDistance(userLatitude, userLongitude, loc.lat, loc.lng);
-
-        if (distance <= 0.5) {
-          const machineCount = await fetchMachineCount(loc.id);
-          return {
-            id: loc.id,
-            name: loc.name,
-            latitude: loc.lat,
-            longitude: loc.lng,
-            machineCount,
-            distance,
-          };
-        }
-        return null;
-      })
+    // Try 0.5km radius first
+    let radiusKm = 0.5;
+    let venuesWithDistance = await fetchVenuesWithinRadius(
+      locations,
+      userLatitude,
+      userLongitude,
+      radiusKm
     );
 
-    // Filter nulls, sort by distance, limit to 3
+    // If no results, expand to 1km
+    if (venuesWithDistance.length === 0) {
+      radiusKm = 1.0;
+      venuesWithDistance = await fetchVenuesWithinRadius(
+        locations,
+        userLatitude,
+        userLongitude,
+        radiusKm
+      );
+    }
+
+    // Sort by distance, limit to 3
     return venuesWithDistance
-      .filter((v): v is PinballVenue => v !== null)
       .sort((a, b) => a.distance - b.distance)
       .slice(0, 3);
   } catch (error) {
     console.error('Error in getNearbyVenues:', error);
+    throw error;
+  }
+}
+
+async function fetchVenuesWithinRadius(
+  locations: LocationData[],
+  userLatitude: number,
+  userLongitude: number,
+  radiusKm: number
+): Promise<PinballVenue[]> {
+  const venuesWithDistance = await Promise.all(
+    locations.map(async (loc) => {
+      const distance = calculateDistance(userLatitude, userLongitude, loc.lat, loc.lng);
+
+      if (distance <= radiusKm) {
+        const machineCount = await fetchMachineCount(loc.id);
+        return {
+          id: loc.id,
+          name: loc.name,
+          latitude: loc.lat,
+          longitude: loc.lng,
+          machineCount,
+          distance,
+        };
+      }
+      return null;
+    })
+  );
+
+  return venuesWithDistance.filter((v): v is PinballVenue => v !== null);
+}
+
+export async function searchVenuesByName(searchQuery: string): Promise<PinballVenue[]> {
+  try {
+    const locations = await fetchAllLocations();
+    const query = searchQuery.toLowerCase().trim();
+
+    // Filter locations by name (case-insensitive, partial match)
+    const matchingLocations = locations.filter((loc) =>
+      loc.name.toLowerCase().includes(query)
+    );
+
+    // Fetch machine counts for matching venues
+    const venuesWithMachines = await Promise.all(
+      matchingLocations.map(async (loc) => {
+        const machineCount = await fetchMachineCount(loc.id);
+        return {
+          id: loc.id,
+          name: loc.name,
+          latitude: loc.lat,
+          longitude: loc.lng,
+          machineCount,
+          distance: 0, // Distance is 0 for search results (not GPS-based)
+        };
+      })
+    );
+
+    return venuesWithMachines;
+  } catch (error) {
+    console.error('Error in searchVenuesByName:', error);
     throw error;
   }
 }

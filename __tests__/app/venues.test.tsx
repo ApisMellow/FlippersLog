@@ -85,7 +85,7 @@ describe('Venues Screen', () => {
     render(<VenuesScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText(/No pinball venues nearby/i)).toBeTruthy();
+      expect(screen.getByText(/No pinball venues found nearby/i)).toBeTruthy();
     });
   });
 
