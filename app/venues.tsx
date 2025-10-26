@@ -37,20 +37,16 @@ const COLORS = {
  * Leave as null to use real GPS
  *
  * Usage: Uncomment the location you want to test, e.g.:
- * const MOCK_LOCATION = MOCK_LOCATIONS.seattle_pinball_museum;
+ * const MOCK_LOCATION = MOCK_LOCATIONS.the_ice_box;
  */
 const MOCK_LOCATIONS = {
-  seattle_pinball_museum: { latitude: 47.6097, longitude: -122.3331 },
-  ice_box_arcade: { latitude: 47.6103, longitude: -122.3295 },
-  admiral_pub: { latitude: 47.6055, longitude: -122.3378 },
-  bake_and_brain: { latitude: 47.6124, longitude: -122.3256 },
-  ballard_area: { latitude: 47.6700, longitude: -122.3830 }, // General Ballard area
-  capitol_hill: { latitude: 47.6205, longitude: -122.3212 }, // Capitol Hill area
-  fremont: { latitude: 47.6511, longitude: -122.3497 }, // Fremont area
+  the_ice_box: { latitude: 47.66000789975176, longitude: -122.36281871227638 },
+  eight_bit_arcade_bar: { latitude: 47.47992596395863, longitude: -122.20500677303598 },
+  another_castle: { latitude: 47.787908391429696, longitude: -122.33970351623452 },
 };
 
 // Set this to test with a mock location (or null for real GPS)
-const MOCK_LOCATION: typeof MOCK_LOCATIONS.seattle_pinball_museum | null = null;
+const MOCK_LOCATION: typeof MOCK_LOCATIONS.the_ice_box | null = null;
 
 export default function VenuesScreen() {
   const router = useRouter();
