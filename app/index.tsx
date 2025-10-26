@@ -146,6 +146,14 @@ export default function HomeScreen() {
       {/* Floating Action Buttons */}
       <View style={styles.fabContainer}>
         <TouchableOpacity
+          testID="venue-fab"
+          style={[styles.fab, styles.fabVenue]}
+          onPress={() => router.push('/venues')}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.fabEmoji}>🎯</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           style={[styles.fab, styles.fabSecondary]}
           onPress={() => router.push('/manual-entry')}
         >
@@ -298,6 +306,15 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     backgroundColor: '#495A73',
+  },
+  fabVenue: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#6BA3D4',
+  },
+  fabEmoji: {
+    fontSize: 24,
   },
   plusIconContainer: {
     width: 24,
