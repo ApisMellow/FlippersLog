@@ -1,7 +1,6 @@
 import { View, Text, StyleSheet, Image, Pressable, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { storage } from '@/services/storage';
-import { getActiveVenue } from '@/services/venue-context';
 
 export default function ReviewScore() {
   const params = useLocalSearchParams<{
@@ -33,15 +32,11 @@ export default function ReviewScore() {
     }
 
     try {
-      // Get active venue if set
-      const activeVenue = await getActiveVenue();
-
       await storage.addScore({
         score,
         tableName: tableName,
         date: new Date().toISOString(),
         photoUri: params.photoUri,
-        venueId: activeVenue?.id,
       });
       router.push('/');
     } catch (error) {

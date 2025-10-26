@@ -5,7 +5,6 @@ export interface Score {
   score: number;
   date: string; // ISO date string
   photoUri?: string;
-  venueId?: number; // Venue association from Pinball Map
 }
 
 export interface Table {

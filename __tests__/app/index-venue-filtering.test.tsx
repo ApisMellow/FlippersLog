@@ -56,18 +56,44 @@ describe('Home Screen - Venue Filtering', () => {
     (venueContext.getActiveVenue as jest.Mock).mockResolvedValue({
       id: 1,
       name: 'Ice Box Arcade',
+      machines: ['Medieval Madness', 'Twilight Zone'], // Machines at Ice Box
     });
-    (storage.getTablesWithScores as jest.Mock).mockResolvedValue([]);
+    (storage.getTablesWithScores as jest.Mock).mockResolvedValue([
+      {
+        id: '1',
+        name: 'Medieval Madness',
+        manufacturer: 'Williams',
+        topScores: [
+          { id: '1', score: 50000, date: '2025-01-10', venueId: 1 },
+        ],
+      },
+      {
+        id: '2',
+        name: 'Congo',
+        manufacturer: 'Stern',
+        topScores: [
+          { id: '2', score: 75000, date: '2025-01-10', venueId: 2 }, // Congo is NOT at Ice Box
+        ],
+      },
+    ]);
 
     render(<HomeScreen />);
 
-    // Should only show scores from venue 1
+    await waitFor(() => {
+      // Should show venue chip
+      expect(screen.getByText('📍 Ice Box Arcade')).toBeTruthy();
+      // Should show Medieval Madness because it's at Ice Box
+      expect(screen.getByText('Medieval Madness')).toBeTruthy();
+      // Should NOT show Congo because it's not at Ice Box
+      expect(screen.queryByText('Congo')).not.toBeTruthy();
+    });
   });
 
   it('displays venue chip when active venue set', async () => {
     (venueContext.getActiveVenue as jest.Mock).mockResolvedValue({
       id: 1,
       name: 'Ice Box Arcade',
+      machines: [],
     });
     (storage.getTablesWithScores as jest.Mock).mockResolvedValue([]);
 
@@ -83,6 +109,7 @@ describe('Home Screen - Venue Filtering', () => {
     (venueContext.getActiveVenue as jest.Mock).mockResolvedValue({
       id: 1,
       name: 'Ice Box Arcade',
+      machines: [],
     });
     (venueContext.clearActiveVenue as jest.Mock).mockResolvedValue(undefined);
     (storage.getTablesWithScores as jest.Mock).mockResolvedValue([]);

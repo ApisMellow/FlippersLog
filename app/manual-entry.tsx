@@ -11,15 +11,15 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { storage } from '@/services/storage';
-import { getActiveVenue } from '@/services/venue-context';
 import { Table } from '@/types';
 
 export default function ManualEntryScreen() {
   const router = useRouter();
-  const [tableName, setTableName] = useState('');
-  const [tableInputValue, setTableInputValue] = useState('');
+  const params = useLocalSearchParams<{ tableName?: string }>();
+  const [tableName, setTableName] = useState(params.tableName || '');
+  const [tableInputValue, setTableInputValue] = useState(params.tableName || '');
   const [score, setScore] = useState('');
   const [sampleTables, setSampleTables] = useState<Table[]>([]);
 
@@ -98,15 +98,11 @@ export default function ManualEntryScreen() {
     }
 
     try {
-      // Get active venue if set
-      const activeVenue = await getActiveVenue();
-
-      // Save the score with tableName and optional venueId
+      // Save the score with tableName
       await storage.addScore({
         score: numericScore,
         tableName: tableName.trim(),
         date: new Date().toISOString(),
-        venueId: activeVenue?.id,
       });
 
       Alert.alert(

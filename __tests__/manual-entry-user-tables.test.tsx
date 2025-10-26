@@ -11,6 +11,7 @@ jest.mock('expo-router', () => ({
     // Call the callback immediately to simulate screen focus
     callback();
   }),
+  useLocalSearchParams: jest.fn(() => ({})),
 }));
 
 // Mock the storage

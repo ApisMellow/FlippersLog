@@ -196,3 +196,30 @@ export async function searchVenuesByName(searchQuery: string): Promise<PinballVe
     throw error;
   }
 }
+
+export async function getMachinesAtVenue(venueId: number): Promise<string[]> {
+  try {
+    const machineNames: string[] = [];
+
+    for (const region of WA_REGIONS) {
+      const url = `${BASE_URL}/region/${region}/location_machine_xrefs.json`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const data = await response.json();
+      const xrefs = data.location_machine_xrefs || [];
+
+      // Get all machines at this venue
+      const venueMachines = xrefs
+        .filter((xref: MachineXref) => xref.location_id === venueId)
+        .map((xref: MachineXref) => xref.machine.name);
+
+      machineNames.push(...venueMachines);
+    }
+
+    return machineNames;
+  } catch (error) {
+    console.error(`Error fetching machines for venue ${venueId}:`, error);
+    return [];
+  }
+}

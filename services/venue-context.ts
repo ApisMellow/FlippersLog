@@ -5,17 +5,21 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getMachinesAtVenue } from './pinballmap-api';
 
 const VENUE_CONTEXT_KEY = '@flipperslog:active_venue';
 
 export interface ActiveVenue {
   id: number;
   name: string;
+  machines: string[]; // List of machine names at this venue
 }
 
 export async function setActiveVenue(venueId: number, venueName: string): Promise<void> {
   try {
-    const venue: ActiveVenue = { id: venueId, name: venueName };
+    // Fetch the list of machines at this venue
+    const machines = await getMachinesAtVenue(venueId);
+    const venue: ActiveVenue = { id: venueId, name: venueName, machines };
     await AsyncStorage.setItem(VENUE_CONTEXT_KEY, JSON.stringify(venue));
   } catch (error) {
     console.error('Error setting active venue:', error);

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, Alert, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { storage } from '@/services/storage';
-import { getActiveVenue } from '@/services/venue-context';
 
 interface Table {
   id: string;
@@ -62,15 +61,11 @@ export default function EditTable() {
       if (isEditMode) {
         await storage.updateScore(params.scoreId!, { tableName: tableName.trim() });
       } else {
-        // Get active venue if set
-        const activeVenue = await getActiveVenue();
-
         await storage.addScore({
           score: parseInt(score, 10),
           tableName: tableName.trim(),
           date: new Date().toISOString(),
           photoUri,
-          venueId: activeVenue?.id,
         });
       }
       router.push('/');
