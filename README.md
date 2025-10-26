@@ -67,6 +67,9 @@ FlippersLog/
 ✅ Manual score entry with formatted input
 ✅ Top 3 scores displayed per table
 ✅ Local data persistence
+✅ GPS venue discovery with Pinball Map API integration
+✅ Venue-specific score filtering
+✅ Quick score entry from suggested venue tables
 🚧 AI vision integration (placeholder - ready for API integration)
 
 ## Future Features
@@ -74,6 +77,40 @@ FlippersLog/
 - 🤝 Social sharing
 - 🎮 Pinball table database integration
 - 🔍 Table search with autocomplete
+
+## GPS Venue Discovery
+
+The app integrates with [Pinball Map API](https://pinballmap.com/api) to discover nearby pinball venues and filter scores by location.
+
+### Features
+
+- **GPS Location Detection**: Uses device GPS to find nearby pinball venues within a 0.5km radius (expands to 1km if no results)
+- **Venue Selection**: Browse and select a venue to filter your scores to only tables at that location
+- **Suggested Tables**: When a venue is selected, see a list of available tables at that venue
+- **Quick Score Entry**: Tap any table name in the venue list to quickly enter a score with the exact table name pre-filled
+
+### Testing with Mock Locations
+
+For development and testing, you can use mock GPS coordinates instead of real GPS:
+
+**File:** `app/venues.tsx` (line 50)
+
+**To use a mock location:**
+```typescript
+const MOCK_LOCATION: typeof MOCK_LOCATIONS.the_ice_box | null = MOCK_LOCATIONS.the_ice_box;
+```
+
+Available mock locations:
+- `MOCK_LOCATIONS.the_ice_box` - The Ice Box Arcade in Seattle
+- `MOCK_LOCATIONS.eight_bit_arcade_bar` - 8-Bit Arcade Bar in Seattle
+- `MOCK_LOCATIONS.another_castle` - Another Castle: Arcade Edition in Shoreline, WA
+
+**To use real GPS location:**
+```typescript
+const MOCK_LOCATION: typeof MOCK_LOCATIONS.the_ice_box | null = null;
+```
+
+The mock locations are defined at the top of `venues.tsx` if you need to add more arcade coordinates.
 
 ## AI Vision Integration
 
