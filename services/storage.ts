@@ -53,9 +53,10 @@ export const storage = {
       scores.push(newScore);
       await AsyncStorage.setItem(SCORES_KEY, JSON.stringify(scores));
 
-      // Ensure table exists and update lastUsedDate
+      // Ensure table exists and update lastUsedDate (case-insensitive matching)
       const tables = await this.getTables();
-      const tableIndex = tables.findIndex(t => t.name === scoreData.tableName);
+      const lowerTableName = scoreData.tableName.toLowerCase();
+      const tableIndex = tables.findIndex(t => t.name.toLowerCase() === lowerTableName);
 
       if (tableIndex >= 0) {
         // Update existing table's lastUsedDate
@@ -79,11 +80,12 @@ export const storage = {
     }
   },
 
-  // Add a table by name (creates if doesn't exist)
+  // Add a table by name (creates if doesn't exist, case-insensitive)
   async addTable(tableName: string): Promise<void> {
     try {
       const tables = await this.getTables();
-      const existingTable = tables.find(t => t.name === tableName);
+      const lowerTableName = tableName.toLowerCase();
+      const existingTable = tables.find(t => t.name.toLowerCase() === lowerTableName);
 
       if (!existingTable) {
         const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
