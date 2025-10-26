@@ -30,6 +30,27 @@ const COLORS = {
   textSecondary: '#A0A0A0',
 };
 
+/**
+ * Mock locations for testing with simulators/emulators
+ * Set MOCK_LOCATION to test at different arcade locations
+ * Leave as null to use real GPS
+ *
+ * Usage: Uncomment the location you want to test, e.g.:
+ * const MOCK_LOCATION = MOCK_LOCATIONS.seattle_pinball_museum;
+ */
+const MOCK_LOCATIONS = {
+  seattle_pinball_museum: { latitude: 47.6097, longitude: -122.3331 },
+  ice_box_arcade: { latitude: 47.6103, longitude: -122.3295 },
+  admiral_pub: { latitude: 47.6055, longitude: -122.3378 },
+  bake_and_brain: { latitude: 47.6124, longitude: -122.3256 },
+  ballard_area: { latitude: 47.6700, longitude: -122.3830 }, // General Ballard area
+  capitol_hill: { latitude: 47.6205, longitude: -122.3212 }, // Capitol Hill area
+  fremont: { latitude: 47.6511, longitude: -122.3497 }, // Fremont area
+};
+
+// Set this to test with a mock location (or null for real GPS)
+const MOCK_LOCATION: typeof MOCK_LOCATIONS.seattle_pinball_museum | null = null;
+
 export default function VenuesScreen() {
   const router = useRouter();
   const [venues, setVenues] = useState<PinballVenue[]>([]);
@@ -59,24 +80,34 @@ export default function VenuesScreen() {
       setLoading(true);
       setError(null);
 
-      // Request location permission
-      const permission = await Location.requestForegroundPermissionsAsync();
-      if (permission.status !== 'granted') {
-        setError('Location access needed to find nearby venues');
-        setLoading(false);
-        return;
+      let latitude: number;
+      let longitude: number;
+
+      // Use mock location if set (for testing), otherwise use real GPS
+      if (MOCK_LOCATION) {
+        latitude = MOCK_LOCATION.latitude;
+        longitude = MOCK_LOCATION.longitude;
+        console.log(`🎯 Using mock location: ${latitude}, ${longitude}`);
+      } else {
+        // Request location permission
+        const permission = await Location.requestForegroundPermissionsAsync();
+        if (permission.status !== 'granted') {
+          setError('Location access needed to find nearby venues');
+          setLoading(false);
+          return;
+        }
+
+        // Get current position
+        const location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        latitude = location.coords.latitude;
+        longitude = location.coords.longitude;
       }
 
-      // Get current position
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-
       // Fetch nearby venues
-      const nearbyVenues = await getNearbyVenues(
-        location.coords.latitude,
-        location.coords.longitude
-      );
+      const nearbyVenues = await getNearbyVenues(latitude, longitude);
 
       if (nearbyVenues.length === 0) {
         setError('No pinball venues nearby within 0.5km. Try moving or expand your search.');
