@@ -6,6 +6,7 @@ import { TableWithScores } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { formatScoreDate } from '@/utils/date-format';
 import { Swipeable } from 'react-native-gesture-handler';
+import { getActiveVenue, clearActiveVenue } from '@/services/venue-context';
 
 // Custom Plus Icon Component
 const PlusIcon = () => (
@@ -19,8 +20,14 @@ export default function HomeScreen() {
   const router = useRouter();
   const [tables, setTables] = useState<TableWithScores[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [activeVenue, setActiveVenue] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
 
   const loadTables = async () => {
+    const venue = await getActiveVenue();
+    setActiveVenue(venue);
     const data = await storage.getTablesWithScores();
     setTables(data);
   };
@@ -29,6 +36,12 @@ export default function HomeScreen() {
     setRefreshing(true);
     await loadTables();
     setRefreshing(false);
+  };
+
+  const handleClearVenue = async () => {
+    await clearActiveVenue();
+    setActiveVenue(null);
+    await loadTables();
   };
 
   // Reload data when screen comes into focus
@@ -72,6 +85,15 @@ export default function HomeScreen() {
     );
   };
 
+  // Filter scores by active venue if set
+  const displayTables = activeVenue
+    ? tables.map((table) => ({
+        ...table,
+        topScores: table.topScores.filter((score) => score.venueId === activeVenue.id),
+      }))
+        .filter((table) => table.topScores.length > 0)
+    : tables;
+
   return (
     <ImageBackground
       source={require('@/assets/adaptive-icon.png')}
@@ -79,14 +101,25 @@ export default function HomeScreen() {
       imageStyle={styles.backgroundImage}
       testID="home-container"
     >
-      {tables.length === 0 ? (
+      {activeVenue && (
+        <View style={styles.venueChip}>
+          <Text style={styles.venueChipText}>📍 {activeVenue.name}</Text>
+          <TouchableOpacity
+            testID="clear-venue-button"
+            onPress={handleClearVenue}
+          >
+            <Ionicons name="close" size={20} color="#E8EEF5" />
+          </TouchableOpacity>
+        </View>
+      )}
+      {displayTables.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>No scores yet!</Text>
           <Text style={styles.emptySubtext}>Tap the + button to add your first score</Text>
         </View>
       ) : (
         <FlatList
-          data={tables}
+          data={displayTables}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingBottom: 100 }}
           refreshControl={
@@ -346,5 +379,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginTop: 4,
+  },
+  venueChip: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#3B4F6B',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#6BA3D4',
+  },
+  venueChipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#E8EEF5',
   },
 });
